@@ -7,6 +7,12 @@ PHP library that converts DOCX templates to PDF by replacing `{{placeholders}}` 
 ## Quick commands
 
 ```bash
+# Run tests
+php vendor/bin/phpunit
+
+# Run a single test class
+php vendor/bin/phpunit tests/PlaceholderParserTest.php
+
 # Syntax check after editing src/
 php -l src/Path/To/File.php
 
@@ -17,7 +23,7 @@ php examples/text-simple.php
 php -r "$z=new ZipArchive(); $z->open('file.docx'); echo $z->getFromName('word/document.xml'); $z->close();"
 ```
 
-No test suite, linter, or CI is configured. The `tests/` directory is empty.
+No linter, formatter, or CI is configured.
 
 ## Architecture
 
