@@ -1,0 +1,351 @@
+# DocxPDF
+
+Un package PHP per convertire documenti DOCX in PDF, utilizzando template con **placeholder**. Genera PDF partendo da documenti Word, senza gestire manualmente l'HTML.
+
+## Caratteristiche
+
+- **Template DOCX** — usa documenti Word come template con placeholder `{{tipo:nome}}`
+- **Testo formattato (Rich Text)** — grassetto, corsivo, colori, pedice, apice, font personalizzati e molto altro
+- **Tabelle complete** — intestazioni ripetute su più pagine, bordi personalizzabili, larghezza, allineamento, colspan, rowspan
+- **Liste puntate e numerate** — con supporto a formattazione ricca per ogni elemento
+- **Immagini** — inserimento dinamico con ridimensionamento automatico
+- **Due convertitori** — LibreOffice (fedele) e mPDF (puro PHP, nessuna dipendenza di sistema)
+- **Zero framework** — PHP puro, utilizzabile in qualsiasi progetto
+
+## Requisiti
+
+- PHP >= 7.4
+- Estensione `zip` (di solito già inclusa)
+- **LibreOffice** (consigliato) — per conversioni fedeli all'originale
+- **mPDF** + estensione `gd` — alternativa pure PHP
+
+## Installazione
+
+```bash
+composer require mdurso/docx-pdf
+```
+
+## Utilizzo rapido
+
+```php
+<?php
+require_once 'vendor/autoload.php';
+
+use DocxPDF\DocxPDF;
+
+$data = [
+    'nome_cliente' => 'Mario Rossi',
+    'data'         => '25/12/2026',
+    'azienda'      => 'Agenzia Viaggi S.r.l.',
+];
+
+$docxPDF = new DocxPDF();
+$pdfPath = $docxPDF->convert('template.docx', $data);
+
+echo "PDF generato: $pdfPath";
+```
+
+## Formato dei placeholder
+
+```
+{{tipo:nome}}
+```
+
+- **`tipo`** — il tipo di placeholder (tabella, lista, testo, immagine, lista_numerata)
+- **`nome`** — la chiave nell'array `$data`
+
+I dati vanno passati con la chiave completa `tipo:nome`:
+
+```php
+$data = [
+    'lista:materiale'  => ['Forbici', 'Colla', 'Forbici'],
+    'tabella:prodotti' => [['Prodotto', 'Prezzo'], ['Laptop', '€999']],
+    'testo:note'       => 'Consegna urgente',
+    'immagine:logo'    => '/path/to/logo.png',
+];
+```
+
+## Tipi di placeholder
+
+### Testo semplice
+
+```php
+$data = ['testo:nome' => 'Mario Rossi'];
+```
+
+Template: `{{testo:nome}}`
+
+### Testo formattato (Rich Text)
+
+Passa un **array di segmenti**, ognuno con `text` e gli attributi desiderati:
+
+```php
+$data = [
+    'testo:nome' => [
+        ['text' => 'Mario', 'bold' => true],
+        ['text' => ' Rossi', 'color' => 'FF0000', 'italic' => true],
+    ],
+];
+```
+
+**Attributi disponibili:** `bold`, `italic`, `underline`, `strike`, `doubleStrike`, `superscript`, `subscript`, `font`, `fontSize`, `color`, `highlight`, `shading`, `caps`, `smallCaps`, `outline`, `shadow`, `emboss`, `imprint`, `spacing`.
+
+### Tabelle
+
+```php
+$data = [
+    'tabella:prodotti' => [
+        ['Prodotto', 'Prezzo', 'Quantità'],   // Riga intestazione
+        ['Laptop',   '€999',  '10'],           // Riga dati
+        ['Mouse',    '€25',   '50'],
+    ],
+];
+```
+
+Le celle possono contenere testo formattato:
+
+```php
+$data = [
+    'tabella:prodotti' => [
+        [
+            ['Prodotto', 'bold' => true],
+            ['Prezzo',   'bold' => true, 'color' => '0000FF'],
+        ],
+        [
+            ['Laptop', 'italic' => true],
+            ['€999',   'color' => '008000'],
+        ],
+    ],
+];
+```
+
+#### Configurazione tabelle
+
+Passa un array con chiave `config` e `rows` per personalizzare la tabella:
+
+```php
+$data = [
+    'tabella:dati' => [
+        'config' => [
+            'repeatHeader'  => true,          // Ripeti intestazione su ogni pagina
+            'chunkSize'     => 15,            // Righe per chunk prima del page break
+            'align'         => 'center',      // allineamento tabella (left/center/right)
+            'width'         => 9000,          // larghezza in twips
+            'widthType'     => 'dxa',         // dxa | pct | auto
+            'indent'        => 100,           // indentazione dal margine sinistro
+            'cellSpacing'   => 10,            // spazio tra celle
+            'layout'        => 'fixed',       // fixed | autofit
+            'vAlign'        => 'center',      // allineamento verticale celle (top/center/bottom)
+            'rowHeight'     => 400,           // altezza righe in twips
+            'rowHeightRule' => 'atLeast',     // atLeast | exact
+            'cantSplit'     => true,          // non spezzare righe tra pagine
+            'headerBgColor' => 'D9E2F3',      // colore sfondo intestazione
+            'borders' => [                    // bordi personalizzati
+                'top'     => ['val' => 'single', 'sz' => '8', 'color' => '000000'],
+                'bottom'  => ['val' => 'double', 'sz' => '4', 'color' => 'FF0000'],
+                'insideH' => ['val' => 'single', 'sz' => '2', 'color' => 'CCCCCC'],
+                'insideV' => ['val' => 'none'],
+            ],
+            'cellPadding' => [                // margini interni celle
+                'top'    => 50,
+                'left'   => 100,
+                'bottom' => 50,
+                'right'  => 100,
+            ],
+        ],
+        'rows' => [
+            ['Intestazione', 'Valore'],
+            ['Riga 1',       'Dato 1'],
+            ['Riga 2',       'Dato 2'],
+        ],
+    ],
+];
+```
+
+#### Attributi cella
+
+Ogni cella può essere una stringa o un array con:
+
+```php
+// Testo con colspan
+['text' => 'Titolo', 'bold' => true, 'gridSpan' => 3]
+
+// Vertical merge (rowspan)
+['text' => 'Prima', 'vMerge' => 'restart']   // prima riga
+['text' => 'Seconda', 'vMerge' => true]       // righe successive
+
+// Allineamento orizzontale
+['text' => 'Centrato', 'align' => 'center']
+```
+
+### Liste puntate
+
+```php
+$data = [
+    'lista:elementi' => [
+        'Primo elemento',
+        'Secondo elemento',
+        'Terzo elemento',
+    ],
+];
+```
+
+### Liste numerate
+
+```php
+$data = [
+    'lista_numerata:passaggi' => [
+        'Primo passaggio',
+        'Secondo passaggio',
+        'Terzo passaggio',
+    ],
+];
+```
+
+Gli elementi delle liste possono contenere formattazione:
+
+```php
+$data = [
+    'lista:elementi' => [
+        ['text' => 'Grassetto', 'bold' => true],
+        ['text' => 'Rosso', 'color' => 'FF0000'],
+        'Testo semplice',
+    ],
+];
+```
+
+### Immagini
+
+```php
+// Percorso semplice
+$data = ['immagine:logo' => '/path/to/logo.png'];
+
+// Con dimensioni
+$data = [
+    'immagine:logo' => [
+        'path'   => '/path/to/logo.png',
+        'width'  => 200,
+        'height' => 100,
+    ],
+];
+```
+
+## Convertitori
+
+### LibreOffice (default)
+
+Conversione fedele: mantiene formattazione, tabelle, immagini, font.
+
+```php
+use DocxPDF\DocxPDF;
+use DocxPDF\LibreOfficeConverter;
+
+// Auto-rilevamento
+$docxPDF = new DocxPDF();
+
+// Percorso esplicito (consigliato)
+$converter = new LibreOfficeConverter('C:\Program Files\LibreOffice\program\soffice.exe');
+$docxPDF = new DocxPDF($converter);
+```
+
+### mPDF
+
+Pure PHP, nessuna dipendenza di sistema. Meno fedele all'originale.
+
+```php
+use DocxPDF\MPDFConverter;
+
+// Opzioni personalizzate mPDF
+$converter = new MPDFConverter([
+    'mode' => 'utf-8',
+    'format' => 'A4',
+    'orientation' => 'P',
+]);
+
+$docxPDF = new DocxPDF($converter);
+```
+
+## Percorso di output
+
+Di default il PDF viene generato nella stessa cartella del template:
+
+```php
+// Stessa cartella del template
+$pdfPath = $docxPDF->convert('template.docx', $data);
+
+// Percorso personalizzato
+$pdfPath = $docxPDF->convert('template.docx', $data, 'output/rapporto.pdf');
+```
+
+## Esempi
+
+| File | Descrizione |
+|------|-------------|
+| `examples/text-simple.php` | Testo semplice e formattato |
+| `examples/table-simple.php` | Tabelle con celle formattate |
+| `examples/list-bullet.php` | Liste puntate |
+| `examples/list-numbered.php` | Liste numerate |
+| `examples/image-simple.php` | Immagini |
+| `examples/typed-placeholders.php` | Tipi specificati |
+| `examples/use-mpdf.php` | Uso con mPDF |
+| `examples/multiple-placeholders.php` | Multiplo placeholder |
+| `examples/header-footer.php` | Header e footer |
+| `examples/nested-data.php` | Dati annidati con formattazione |
+
+## Struttura del progetto
+
+```
+docx-pdf/
+├── src/
+│   ├── ConverterInterface.php
+│   ├── AbstractConverter.php
+│   ├── DocxPDF.php
+│   ├── LibreOfficeConverter.php
+│   ├── MPDFConverter.php
+│   └── Placeholder/
+│       ├── PlaceholderInterface.php
+│       ├── AbstractPlaceholder.php
+│       ├── PlaceholderParser.php
+│       ├── TextPlaceholder.php
+│       ├── TablePlaceholder.php
+│       ├── ListPlaceholder.php
+│       ├── ImagePlaceholder.php
+│       └── RichTextSegment.php
+├── examples/
+├── tests/
+├── FORMATTING.md
+├── composer.json
+└── README.md
+```
+
+## Limitazioni note
+
+- **LibreOffice ignora `<w:tblHeader/>`** — la ripetizione dell'intestazione su più pagine è gestita con page break forzati tra chunk di righe
+- **mPDF** — le tabelle e le liste perdono parte della formattazione originale; si consiglia LibreOffice per documenti complessi
+- **Immagini** — l'inserimento funziona solo con il convertitore LibreOffice; mPDF mostra un testo descrittivo
+
+## Troubleshooting
+
+### LibreOffice non trovato
+
+```php
+// Specifica il percorso manualmente
+$converter = new LibreOfficeConverter('C:\\Program Files\\LibreOffice\\program\\soffice.exe');
+$docxPDF = new DocxPDF($converter);
+```
+
+### Caratteri speciali non visualizzati
+
+Assicurati che i file DOCX siano salvati in UTF-8. Per problemi con accenti, prova il convertitore mPDF.
+
+## Contribuire
+
+1. Fork il progetto
+2. Crea un branch per la tua feature
+3. Commit le tue modifiche
+4. Push al branch
+5. Crea un Pull Request
+
+## License
+
+MIT — vedi il file `LICENSE`.

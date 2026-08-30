@@ -1,0 +1,32 @@
+{
+    "name": "mdurso/docx-pdf",
+    "description": "Convertitore DOCX in PDF con supporto a placeholder",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "mpdf/mpdf": "^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "DocxPDF\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DocxPDF\\Tests\\": "tests/"
+        }
+    },
+    "keywords": ["docx", "pdf", "converter", "template", "placeholder", "word"],
+    "support": {
+        "source": "https://github.com/mdurso/docx-pdf"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
