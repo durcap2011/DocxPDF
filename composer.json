@@ -1,11 +1,11 @@
 {
-    "name": "mdurso/docx-pdf",
+    "name": "durcap/docx-pdf",
     "description": "Convertitore DOCX in PDF con supporto a placeholder",
     "type": "library",
     "license": "MIT",
     "require": {
         "php": ">=7.4",
-        "mpdf/mpdf": "^8.0"
+        "ext-zip": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0"

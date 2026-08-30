@@ -31,7 +31,7 @@ interface PlaceholderInterface
     public function toXmlString(): string;
 
     /**
-     * Restituisce il valore del placeholder come HTML per mPDF.
+     * Restituisce il valore del placeholder come HTML.
      *
      * @return string
      */

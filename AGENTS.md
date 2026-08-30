@@ -2,7 +2,7 @@
 
 ## What this is
 
-PHP library that converts DOCX templates to PDF by replacing `{{placeholders}}` with data. Two converter backends: LibreOffice (default, faithful rendering) and mPDF (pure PHP, less faithful).
+PHP library that converts DOCX templates to PDF by replacing `{{placeholders}}` with data. Uses LibreOffice for conversion.
 
 ## Quick commands
 
@@ -38,7 +38,6 @@ Rich text segments: pass an array of `['text' => '...', 'bold' => true, ...]` in
 
 - **LibreOfficeConverter** creates a temp DOCX in `sys_get_temp_dir()`, modifies it, converts via CLI `soffice --headless`, renames output, then deletes the temp file. The temp file must be cleaned up even on failure (try/finally).
 - **Block-level placeholder replacement** (lists, tables): `replacePlaceholders()` replaces the entire `<w:p>` paragraph, not just the text node. The regex uses negative lookahead `(?:(?!<\/w:p>).)*` to avoid matching across paragraph boundaries.
-- **mPDF path**: `MPDFConverter::processXmlForHtml()` strips XML tags and wraps in `<p>`. Lists/tables lose formatting in mPDF mode.
 - **Windows paths**: LibreOffice path detection uses `C:\Program Files\LibreOffice\program\soffice.exe`. The `exec()` calls use double quotes around paths with spaces.
 
 ## File conventions

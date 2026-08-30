@@ -1,4 +1,4 @@
-/vendor/
+gits/vendor/
 composer.lock
 .idea/
 .vscode/

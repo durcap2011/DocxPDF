@@ -18,10 +18,17 @@ class LibreOfficeConverter extends AbstractConverter
      * Costruttore.
      *
      * @param string|null $libreOfficePath Percorso all'eseguibile di LibreOffice. Se non specificato, cerca automaticamente.
+     * @throws \InvalidArgumentException Se il percorso specificato non è valido.
      */
     public function __construct(?string $libreOfficePath = null)
     {
-        $this->libreOfficePath = $libreOfficePath ?? $this->findLibreOffice();
+        $path = $libreOfficePath ?? $this->findLibreOffice();
+
+        if (!file_exists($path) || !is_file($path)) {
+            throw new \InvalidArgumentException("Il percorso specificato non è un file valido: $path");
+        }
+
+        $this->libreOfficePath = $path;
     }
 
     /**
@@ -29,17 +36,19 @@ class LibreOfficeConverter extends AbstractConverter
      */
     public function convert(string $docxPath, string $pdfPath, array $data): bool
     {
-        // Crea un file temporaneo con i placeholder sostituiti
-        $tempDocx = tempnam(sys_get_temp_dir(), 'docx_pdf_') . '.docx';
+        // Crea un file temporaneo con un nome casuale (senza usare tempnam che crea un file fantasma)
+        $tempName = 'docx_pdf_' . bin2hex(random_bytes(8));
+        $tempDocx = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $tempName . '.docx';
         try {
             $this->modifyDocx($docxPath, $tempDocx, $data);
 
             // Esegui LibreOffice per la conversione
+            // escapeshellarg() gestisce correttamente l'escaping su Windows e Linux
             $command = sprintf(
-                '"%s" --headless --convert-to pdf --outdir "%s" "%s"',
-                $this->libreOfficePath,
-                dirname($pdfPath),
-                $tempDocx
+                '%s --headless --convert-to pdf --outdir %s %s',
+                escapeshellarg($this->libreOfficePath),
+                escapeshellarg(dirname($pdfPath)),
+                escapeshellarg($tempDocx)
             );
 
             $output = [];
@@ -80,8 +89,8 @@ class LibreOfficeConverter extends AbstractConverter
             return true;
         } finally {
             // Pulisci il file temporaneo
-            if (file_exists($tempDocx)) {
-                unlink($tempDocx);
+            if (isset($tempDocx) && file_exists($tempDocx)) {
+                @unlink($tempDocx);
             }
         }
     }
@@ -112,17 +121,26 @@ class LibreOfficeConverter extends AbstractConverter
             }
         }
 
-        // Prova a cercare nel PATH
+        // Cerca nel PATH in base al sistema operativo
         $output = [];
         $returnCode = 0;
-        exec('where soffice 2>&1', $output, $returnCode);
-        if ($returnCode === 0 && !empty($output)) {
-            return trim($output[0]);
+
+        if (PHP_OS_FAMILY === 'Windows') {
+            exec('where soffice 2>&1', $output, $returnCode);
+        } else {
+            exec('which soffice 2>&1', $output, $returnCode);
+            if ($returnCode !== 0 || empty($output)) {
+                $output = [];
+                $returnCode = 0;
+                exec('which libreoffice 2>&1', $output, $returnCode);
+            }
         }
 
-        exec('which libreoffice 2>&1', $output, $returnCode);
         if ($returnCode === 0 && !empty($output)) {
-            return trim($output[0]);
+            $found = trim($output[0]);
+            if (file_exists($found)) {
+                return $found;
+            }
         }
 
         throw new \RuntimeException(

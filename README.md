@@ -5,24 +5,23 @@ Un package PHP per convertire documenti DOCX in PDF, utilizzando template con **
 ## Caratteristiche
 
 - **Template DOCX** — usa documenti Word come template con placeholder `{{tipo:nome}}`
-- **Testo formattato (Rich Text)** — grassetto, corsivo, colori, pedice, apice, font personalizzati e molto altro
-- **Tabelle complete** — intestazioni ripetute su più pagine, bordi personalizzabili, larghezza, allineamento, colspan, rowspan
+- **Testo formattato (Rich Text)** — supporto a grassetto, corsivo, colori, pedice, apice, font personalizzati e altre proprietà di formattazione supportate
+- **Tabelle** — supporto a intestazioni ripetute su più pagine, bordi personalizzabili, larghezza, allineamento, colspan e rowspan
 - **Liste puntate e numerate** — con supporto a formattazione ricca per ogni elemento
 - **Immagini** — inserimento dinamico con ridimensionamento automatico
-- **Due convertitori** — LibreOffice (fedele) e mPDF (puro PHP, nessuna dipendenza di sistema)
-- **Zero framework** — PHP puro, utilizzabile in qualsiasi progetto
+- **LibreOffice** — conversione fedele all'originale tramite soffice --headless
+- **Zero framework** — PHP puro, progettato per essere utilizzabile in diversi tipi di progetto PHP
 
 ## Requisiti
 
 - PHP >= 7.4
 - Estensione `zip` (di solito già inclusa)
-- **LibreOffice** (consigliato) — per conversioni fedeli all'originale
-- **mPDF** + estensione `gd` — alternativa pure PHP
+- **LibreOffice** — utilizzato per la conversione dei documenti DOCX in PDF, deve essere installato e accessibile nell'ambiente in cui viene eseguita la conversione.
 
 ## Installazione
 
 ```bash
-composer require mdurso/docx-pdf
+composer require durcap/docx-pdf
 ```
 
 ## Utilizzo rapido
@@ -234,7 +233,7 @@ $data = [
 
 ### LibreOffice (default)
 
-Conversione fedele: mantiene formattazione, tabelle, immagini, font.
+Conversione generalmente fedele all'originale, compatibilmente con le funzionalità supportate da LibreOffice.
 
 ```php
 use DocxPDF\DocxPDF;
@@ -245,23 +244,6 @@ $docxPDF = new DocxPDF();
 
 // Percorso esplicito (consigliato)
 $converter = new LibreOfficeConverter('C:\Program Files\LibreOffice\program\soffice.exe');
-$docxPDF = new DocxPDF($converter);
-```
-
-### mPDF
-
-Pure PHP, nessuna dipendenza di sistema. Meno fedele all'originale.
-
-```php
-use DocxPDF\MPDFConverter;
-
-// Opzioni personalizzate mPDF
-$converter = new MPDFConverter([
-    'mode' => 'utf-8',
-    'format' => 'A4',
-    'orientation' => 'P',
-]);
-
 $docxPDF = new DocxPDF($converter);
 ```
 
@@ -287,7 +269,6 @@ $pdfPath = $docxPDF->convert('template.docx', $data, 'output/rapporto.pdf');
 | `examples/list-numbered.php` | Liste numerate |
 | `examples/image-simple.php` | Immagini |
 | `examples/typed-placeholders.php` | Tipi specificati |
-| `examples/use-mpdf.php` | Uso con mPDF |
 | `examples/multiple-placeholders.php` | Multiplo placeholder |
 | `examples/header-footer.php` | Header e footer |
 | `examples/nested-data.php` | Dati annidati con formattazione |
@@ -301,7 +282,6 @@ docx-pdf/
 │   ├── AbstractConverter.php
 │   ├── DocxPDF.php
 │   ├── LibreOfficeConverter.php
-│   ├── MPDFConverter.php
 │   └── Placeholder/
 │       ├── PlaceholderInterface.php
 │       ├── AbstractPlaceholder.php
@@ -321,8 +301,8 @@ docx-pdf/
 ## Limitazioni note
 
 - **LibreOffice ignora `<w:tblHeader/>`** — la ripetizione dell'intestazione su più pagine è gestita con page break forzati tra chunk di righe
-- **mPDF** — le tabelle e le liste perdono parte della formattazione originale; si consiglia LibreOffice per documenti complessi
-- **Immagini** — l'inserimento funziona solo con il convertitore LibreOffice; mPDF mostra un testo descrittivo
+- **Immagini** — l'inserimento funziona solo con il convertitore LibreOffice
+I documenti forniti a LibreOffice dovrebbero essere trattati come input non attendibile e la conversione dovrebbe essere eseguita in un ambiente adeguatamente isolato quando i file provengono da utenti non fidati.
 
 ## Troubleshooting
 
@@ -336,7 +316,17 @@ $docxPDF = new DocxPDF($converter);
 
 ### Caratteri speciali non visualizzati
 
-Assicurati che i file DOCX siano salvati in UTF-8. Per problemi con accenti, prova il convertitore mPDF.
+La corretta visualizzazione dei caratteri può dipendere dai font disponibili nel sistema e dalle impostazioni dell'ambiente LibreOffice.
+Verifica che i font utilizzati dal documento siano installati e disponibili nell'ambiente in cui viene eseguita la conversione.
+
+## Disclaimer
+
+Questo package viene fornito "così com'è" e "secondo disponibilità", senza garanzie di alcun tipo, nella misura massima consentita dalla legge applicabile.
+Il package può contenere bug, limitazioni o problemi di compatibilità e il risultato generato può variare in base al documento DOCX di origine, alla versione di PHP, al sistema operativo, ai font installati, alla versione di LibreOffice e ad altri fattori dell'ambiente in cui viene utilizzato.
+L'autore non garantisce che il package o i documenti PDF generati siano privi di errori, completi, accurati, idonei a uno specifico scopo o compatibili con ogni ambiente o documento.
+L'utilizzatore è responsabile della verifica e della validazione dei documenti generati prima del loro utilizzo in produzione o per finalità legali, finanziarie, fiscali, normative, contrattuali o comunque critiche.
+Nella misura consentita dalla legge applicabile, l'autore non è responsabile per eventuali perdite, danni o conseguenze derivanti dall'utilizzo del package o dall'affidamento sui documenti generati tramite lo stesso.
+Nulla di quanto previsto nel presente disclaimer intende escludere o limitare eventuali responsabilità che, ai sensi della legge applicabile, non possono essere legalmente escluse o limitate.
 
 ## Contribuire
 

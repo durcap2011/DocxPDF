@@ -2,8 +2,7 @@
 /**
  * Esempio 5: Immagine
  * 
- * Questo esempio dimostra come inserire un'immagine in un template DOCX
- * (funziona sia con LibreOffice che con mPDF).
+ * Questo esempio dimostra come inserire un'immagine in un template DOCX.
  * 
  * Template DOCX richiesto:
  * - Crea un file Word con il seguente contenuto:

@@ -343,7 +343,6 @@ $tabella = [
 ### Compatibilità
 
 - **LibreOffice**: Supporta tutti gli attributi. Testato su Windows, Linux, macOS.
-- **mPDF**: Supporta `bold`, `italic`, `color`, `fontSize`, `font`, `subscript`, `superscript`. Alcuni effetti (emboss, imprint, outline) potrebbero non essere visibili.
 
 ### Valori Colore
 

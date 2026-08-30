@@ -17,8 +17,7 @@ Supponiamo di avere una fattura, devo inserire il nome dell'azienda. Vado nel pu
 Lascio a te LLM, la scelta delle tipologia da utilizzare, tieni presente che in teoria devi poter inserire quanto più tipologie di dati possibili, tabelle, immagini, testi ecc.. Scrivi queste informazioni nel file README.md
 
 # Generatore PDF
-Voglio, che abbia 2 modalità, LibreOffice (default) e mpdf.
-Crea pacchetti separati per le due modalità, in maniera tale da essere installabili manualmente. Aggiungere nel file README.md la guida come fare
+Voglio, che usi LibreOffice per la conversione da DOCX a PDF.
 
 # Linguaggio, piattaforme e suo utilizzo
 Voglio che sia scritto in PHP puro, così da non avere dipendenze con altra piattaforme, cioè possa essere inserito al suo interno facilmente. Voglio che sia di facile utilizzo, cioè richiamare la classe con il suo metodo e passargli, il percorso del template docx, i dati da sostituire ai placeholder. Il nome del file avrà lo stesso nome del template.
