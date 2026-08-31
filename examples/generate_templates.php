@@ -143,7 +143,7 @@ function createDocx(string $filePath, string $bodyXml, array $headers = [], arra
 
 function p(string $text): string
 {
-    return '<w:p><w:r><w:t>' . htmlspecialchars($text) . '</w:t></w:r></w:p>';
+    return '<w:p><w:r><w:t>' . str_replace(['&', '<', '>'], ['&amp;', '&lt;', '&gt;'], $text) . '</w:t></w:r></w:p>';
 }
 
 // ============================================================

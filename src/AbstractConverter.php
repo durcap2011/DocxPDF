@@ -24,10 +24,15 @@ abstract class AbstractConverter implements ConverterInterface
 
         foreach ($placeholders as $fullMatch => $placeholder) {
             if ($placeholder instanceof \DocxPDF\Placeholder\TextPlaceholder) {
-                // Usa escapeXmlValue per una protezione più robusta
-                $value = (string)$placeholder->getValue();
-                $replacement = '<w:t xml:space="preserve">' . $this->escapeXmlValue($value) . '</w:t>';
-                $xmlContent = str_replace($fullMatch, $replacement, $xmlContent);
+                $value = $placeholder->getValue();
+                // Rich text: split the containing <w:r> and insert formatted runs
+                if (is_array($value) && \DocxPDF\Placeholder\RichTextSegment::isSegmentArray($value)) {
+                    $xmlContent = $this->replaceRichTextInline($xmlContent, $fullMatch, $placeholder);
+                } else {
+                    // Testo semplice: inserisci il valore escapato nel testo esistente
+                    $replacement = $this->escapeXmlValue((string)$value);
+                    $xmlContent = str_replace($fullMatch, $replacement, $xmlContent);
+                }
             } else {
                 $replacement = $placeholder->toXmlString();
                 $paragraphPattern = '/<w:p\b[^>]*>(?:(?!<\/w:p>).)*' . preg_quote($fullMatch, '/') . '(?:(?!<\/w:p>).)*<\/w:p>/';
@@ -37,6 +42,65 @@ abstract class AbstractConverter implements ConverterInterface
                     $xmlContent = str_replace($fullMatch, $replacement, $xmlContent);
                 }
             }
+        }
+
+        return $xmlContent;
+    }
+
+    /**
+     * Sostituisce un placeholder rich text inline nel contenuto XML.
+     * Divide il <w:r> contenitore in più run: testo prima, segmenti formattati, testo dopo.
+     *
+     * @param string $xmlContent Contenuto XML.
+     * @param string $fullMatch Testo completo del placeholder (es. "{{prezzo}}").
+     * @param \DocxPDF\Placeholder\TextPlaceholder $placeholder Placeholder con valore rich text.
+     * @return string Contenuto XML aggiornato.
+     */
+    private function replaceRichTextInline(string $xmlContent, string $fullMatch, \DocxPDF\Placeholder\TextPlaceholder $placeholder): string
+    {
+        // Cerca il <w:r> che contiene il placeholder nel suo <w:t>
+        // Gruppo 1: attributi del <w:r> (es. " w:rStyle=\"...\"")
+        // Gruppo 2: eventuale <w:rPr>...</w:rPr>
+        // Gruppo 3: testo PRIMA del placeholder dentro <w:t>
+        // Gruppo 4: testo DOPO il placeholder dentro <w:t>
+        $escaped = preg_quote($fullMatch, '/');
+        $runPattern = '/<w:r\b([^>]*)>(\s*<w:rPr>.*?<\/w:rPr>\s*)?<w:t\b[^>]*>([^<]*)' . $escaped . '([^<]*)<\/w:t>(\s*<\/w:r>)/';
+
+        if (preg_match($runPattern, $xmlContent, $m)) {
+            $runAttrs = $m[1];
+            $rPr = $m[2] ?? '';
+            // Decodifica le entità XML estratte dal template (&#039; → ', &amp; → &, ecc.)
+            // prima di re-encoding, per evitare double-encoding
+            $before = html_entity_decode($m[3], ENT_XML1 | ENT_QUOTES, 'UTF-8');
+            $after = html_entity_decode($m[4], ENT_XML1 | ENT_QUOTES, 'UTF-8');
+
+            $replacement = '';
+
+            // Testo prima del placeholder: mantieni il run originale
+            if ($before !== '') {
+                $replacement .= '<w:r' . $runAttrs . '>';
+                if ($rPr !== '') {
+                    $replacement .= $rPr;
+                }
+                $replacement .= '<w:t xml:space="preserve">' . $this->escapeXmlValue($before) . '</w:t></w:r>';
+            }
+
+            // Segmenti rich text formattati
+            $replacement .= $placeholder->toXmlString();
+
+            // Testo dopo il placeholder: nuovo run
+            if ($after !== '') {
+                $replacement .= '<w:r' . $runAttrs . '>';
+                if ($rPr !== '') {
+                    $replacement .= $rPr;
+                }
+                $replacement .= '<w:t xml:space="preserve">' . $this->escapeXmlValue($after) . '</w:t></w:r>';
+            }
+
+            $xmlContent = str_replace($m[0], $replacement, $xmlContent);
+        } else {
+            // Fallback: sostituisci direttamente (potrebbe creare XML non valido)
+            $xmlContent = str_replace($fullMatch, $placeholder->toXmlString(), $xmlContent);
         }
 
         return $xmlContent;
@@ -108,12 +172,6 @@ abstract class AbstractConverter implements ConverterInterface
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = $zip->getNameIndex($i);
             if (preg_match('#^(word/(document|header\d*|footer\d*|footnote|endnote)\.xml)$#', $name)) {
-                // Controlla dimensione singola entry
-                $entrySize = $zip->locateName($name) !== false
-                    ? $zip->getFromName($name, true)
-                    : 0;
-
-                // Usa getFromIndex per ottenere info dimensione
                 $stat = $zip->statName($name);
                 if ($stat !== false && $stat['size'] > self::MAX_ZIP_ENTRY_SIZE) {
                     $zip->close();
@@ -690,10 +748,10 @@ abstract class AbstractConverter implements ConverterInterface
      */
     protected function escapeXmlValue(string $value): string
     {
-        // Prima di tutto, escapppa i caratteri XML base
+        // Escappa i caratteri XML base (testo: solo &, <, > necessitano di escaping)
         $value = str_replace(
-            ['&', '<', '>', "'", '"'],
-            ['&amp;', '&lt;', '&gt;', '&apos;', '&quot;'],
+            ['&', '<', '>'],
+            ['&amp;', '&lt;', '&gt;'],
             $value
         );
 

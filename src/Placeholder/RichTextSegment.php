@@ -21,7 +21,7 @@ class RichTextSegment
             if ($rPr !== '') {
                 $xml .= '<w:rPr>' . $rPr . '</w:rPr>';
             }
-            $xml .= '<w:t xml:space="preserve">' . htmlspecialchars($text) . '</w:t>';
+            $xml .= '<w:t xml:space="preserve">' . htmlspecialchars($text, ENT_XML1) . '</w:t>';
             $xml .= '</w:r>';
         }
         return $xml;

@@ -99,9 +99,15 @@ class PlaceholderParser
         }
 
         if (is_array($value)) {
-            // Controlla se ha la chiave 'path' (immagine) — va prima del check tabella
+            // Controlla se ha la chiave 'path' (immagine) — va prima di tutto
             if (isset($value['path'])) {
                 return new ImagePlaceholder($name, $value);
+            }
+
+            // Controlla se è un array di segmenti rich text (elementi con chiave 'text')
+            // Va prima del check tabella, perché anche i segmenti rich text sono array di array
+            if (RichTextSegment::isSegmentArray($value)) {
+                return new TextPlaceholder($name, $value);
             }
 
             // Controlla se è un array di array (tabella)
