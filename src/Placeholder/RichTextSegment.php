@@ -47,8 +47,12 @@ class RichTextSegment
         $xml = '';
 
         if (!empty($s['font'])) {
-            $font = htmlspecialchars($s['font']);
-            $xml .= '<w:rFonts w:ascii="' . $font . '" w:hAnsi="' . $font . '"/>';
+            $font = (string)$s['font'];
+            // Valida che il nome font contenga solo caratteri sicuri
+            if (preg_match('/^[a-zA-Z0-9\s\-\'\.]+$/', $font) && strlen($font) <= 100) {
+                $font = htmlspecialchars($font, ENT_QUOTES);
+                $xml .= '<w:rFonts w:ascii="' . $font . '" w:hAnsi="' . $font . '"/>';
+            }
         }
 
         if (!empty($s['bold'])) {
@@ -83,7 +87,10 @@ class RichTextSegment
 
         if (!empty($s['color'])) {
             $color = strtoupper(ltrim($s['color'], '#'));
-            $xml .= '<w:color w:val="' . $color . '"/>';
+            // Valida che il colore sia alfanumerico (hex) per prevenire XML injection
+            if (preg_match('/^[0-9A-F]{3,8}$/', $color)) {
+                $xml .= '<w:color w:val="' . $color . '"/>';
+            }
         }
 
         if (isset($s['underline'])) {
@@ -97,7 +104,10 @@ class RichTextSegment
 
         if (isset($s['shading'])) {
             $fill = strtoupper(ltrim($s['shading'], '#'));
-            $xml .= '<w:shd w:val="clear" w:color="auto" w:fill="' . $fill . '"/>';
+            // Valida che il colore sia alfanumerico (hex) per prevenire XML injection
+            if (preg_match('/^[0-9A-F]{3,8}$/', $fill)) {
+                $xml .= '<w:shd w:val="clear" w:color="auto" w:fill="' . $fill . '"/>';
+            }
         }
 
         if (!empty($s['outline'])) {
@@ -123,6 +133,35 @@ class RichTextSegment
         }
 
         return $xml;
+    }
+
+    /**
+     * Valida e sanitizza un valore CSS per prevenire injection.
+     *
+     * @param string $value Valore CSS da sanitizzare.
+     * @return string Valore sanitizzato.
+     */
+    private static function sanitizeCssValue(string $value): string
+    {
+        // Rimuovi caratteri null byte
+        $value = str_replace("\0", '', $value);
+
+        // Rimuovi parentesi graffe (possibili injection CSS)
+        $value = str_replace(['{', '}'], '', $value);
+
+        // Rimuovi backslash
+        $value = str_replace('\\', '', $value);
+
+        // Rimuovi caratteri di controllo
+        $value = preg_replace('/[\x00-\x1f\x7f]/', '', $value);
+
+        // Rimuovi event handler e espressioni JavaScript
+        $value = preg_replace('/(expression|javascript|vbscript|data):/i', '', $value);
+
+        // Limita la lunghezza
+        $value = substr($value, 0, 100);
+
+        return trim($value);
     }
 
     private static function buildHtmlTag(array $s): ?array
@@ -156,22 +195,44 @@ class RichTextSegment
         if (isset($s['fontSize']) || isset($s['font']) || isset($s['color']) || isset($s['shading']) || isset($s['highlight'])) {
             $style = [];
             if (isset($s['fontSize'])) {
-                $style[] = 'font-size:' . $s['fontSize'] . 'pt';
+                // Valida che fontSize sia numerico
+                $fontSize = filter_var($s['fontSize'], FILTER_VALIDATE_INT);
+                if ($fontSize !== false && $fontSize > 0 && $fontSize <= 200) {
+                    $style[] = 'font-size:' . $fontSize . 'pt';
+                }
             }
             if (isset($s['font'])) {
-                $style[] = 'font-family:' . $s['font'];
+                // Sanitizza font name
+                $font = self::sanitizeCssValue((string)$s['font']);
+                if ($font !== '' && preg_match('/^[a-zA-Z0-9\s\-\',.]+$/', $font)) {
+                    $style[] = 'font-family:' . $font;
+                }
             }
             if (isset($s['color'])) {
-                $style[] = 'color:#' . ltrim($s['color'], '#');
+                // Valida colore hex
+                $color = ltrim((string)$s['color'], '#');
+                if (preg_match('/^[0-9a-fA-F]{3,8}$/', $color)) {
+                    $style[] = 'color:#' . $color;
+                }
             }
             if (isset($s['shading'])) {
-                $style[] = 'background-color:#' . ltrim($s['shading'], '#');
+                // Valida colore hex
+                $shading = ltrim((string)$s['shading'], '#');
+                if (preg_match('/^[0-9a-fA-F]{3,8}$/', $shading)) {
+                    $style[] = 'background-color:#' . $shading;
+                }
             }
             if (isset($s['highlight'])) {
-                $style[] = 'background-color:' . $s['highlight'];
+                // Sanitizza highlight value
+                $highlight = self::sanitizeCssValue((string)$s['highlight']);
+                if ($highlight !== '' && preg_match('/^[a-zA-Z0-9\-]+$/', $highlight)) {
+                    $style[] = 'background-color:' . $highlight;
+                }
             }
-            $openTags[] = '<span style="' . implode(';', $style) . '">';
-            $closeTags[] = '</span>';
+            if (!empty($style)) {
+                $openTags[] = '<span style="' . htmlspecialchars(implode(';', $style), ENT_QUOTES) . '">';
+                $closeTags[] = '</span>';
+            }
         }
 
         if (empty($openTags)) {

@@ -33,13 +33,9 @@ class LibreOfficeConverterTest extends TestCase
 
     public function testConstructorWithExplicitPath(): void
     {
-        // On Windows, use a dummy path — constructor doesn't validate file exists
-        if (PHP_OS_FAMILY === 'Windows') {
-            $converter = new LibreOfficeConverter('C:\\fake\\soffice.exe');
-            $this->assertInstanceOf(LibreOfficeConverter::class, $converter);
-        } else {
-            $converter = new LibreOfficeConverter('/usr/bin/fake-soffice');
-            $this->assertInstanceOf(LibreOfficeConverter::class, $converter);
-        }
+        // Il costruttore valida che il file esista e sia in una posizione consentita
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('non è un file valido');
+        new LibreOfficeConverter('C:\\fake\\soffice.exe');
     }
 }

@@ -24,7 +24,9 @@ abstract class AbstractConverter implements ConverterInterface
 
         foreach ($placeholders as $fullMatch => $placeholder) {
             if ($placeholder instanceof \DocxPDF\Placeholder\TextPlaceholder) {
-                $replacement = htmlspecialchars((string)$placeholder->getValue());
+                // Usa escapeXmlValue per una protezione più robusta
+                $value = (string)$placeholder->getValue();
+                $replacement = '<w:t xml:space="preserve">' . $this->escapeXmlValue($value) . '</w:t>';
                 $xmlContent = str_replace($fullMatch, $replacement, $xmlContent);
             } else {
                 $replacement = $placeholder->toXmlString();
@@ -74,6 +76,14 @@ abstract class AbstractConverter implements ConverterInterface
      */
     protected function modifyDocx(string $docxPath, string $outputPath, array $data): bool
     {
+        // Validazione dimensione file DOCX
+        $docxSize = @filesize($docxPath);
+        if ($docxSize === false || $docxSize > self::MAX_DOCX_SIZE) {
+            throw new \InvalidArgumentException(
+                'File DOCX troppo grande o dimensione non determinabile: ' . $docxPath
+            );
+        }
+
         // Copia l'originale nella destinazione di output
         if (!copy($docxPath, $outputPath)) {
             throw new \RuntimeException("Impossibile copiare il file DOCX: $docxPath");
@@ -85,10 +95,34 @@ abstract class AbstractConverter implements ConverterInterface
             throw new \RuntimeException("Impossibile aprire il file DOCX: $outputPath");
         }
 
+        // Controlli zip bomb: verifica numero massimo di file
+        if ($zip->numFiles > self::MAX_ZIP_FILES) {
+            $zip->close();
+            @unlink($outputPath);
+            throw new \InvalidArgumentException(
+                'Il file DOCX contiene troppi file: ' . $zip->numFiles
+            );
+        }
+
         $xmlFiles = [];
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = $zip->getNameIndex($i);
             if (preg_match('#^(word/(document|header\d*|footer\d*|footnote|endnote)\.xml)$#', $name)) {
+                // Controlla dimensione singola entry
+                $entrySize = $zip->locateName($name) !== false
+                    ? $zip->getFromName($name, true)
+                    : 0;
+
+                // Usa getFromIndex per ottenere info dimensione
+                $stat = $zip->statName($name);
+                if ($stat !== false && $stat['size'] > self::MAX_ZIP_ENTRY_SIZE) {
+                    $zip->close();
+                    @unlink($outputPath);
+                    throw new \InvalidArgumentException(
+                        'File XML troppo grande nell\'archivio: ' . $name
+                    );
+                }
+
                 $xmlFiles[] = $name;
             }
         }
@@ -101,6 +135,9 @@ abstract class AbstractConverter implements ConverterInterface
             if ($content === false) {
                 continue;
             }
+
+            // Sanitizza le entità XML esterne (XXE)
+            $content = $this->sanitizeXmlEntities($content);
 
             // Inserisci le immagini reali
             $content = $this->injectImages($zip, $xmlFile, $content, $data);
@@ -204,14 +241,29 @@ abstract class AbstractConverter implements ConverterInterface
             }
 
             $value = $data["immagine:$name"] ?? $data[$name];
-            $path = is_array($value) ? ($value['path'] ?? '') : (string)$value;
+            $rawPath = is_array($value) ? ($value['path'] ?? '') : (string)$value;
 
-            if (!is_string($path) || $path === '' || !file_exists($path)) {
+            // Normalizza il percorso per prevenire path traversal
+            $path = $this->sanitizePath($rawPath);
+
+            // Validazione sicurezza: verifica che il file sia un'immagine valida
+            try {
+                // Verifica che il percorso non contenga traversal
+                if (strpos($rawPath, '..') !== false || strpos($rawPath, "\0") !== false) {
+                    return $paragraph;
+                }
+                $this->validateImagePath($path);
+            } catch (\InvalidArgumentException $e) {
+                // File non valido: lascia il paragrafo così com'è
                 return $paragraph;
             }
 
             $width = is_array($value) ? ($value['width'] ?? 100) : 100;
             $height = is_array($value) ? ($value['height'] ?? 100) : 100;
+
+            // Limita dimensioni massime per prevenire DoS via memory exhaustion
+            $width = min((int)$width, self::MAX_IMAGE_DIMENSION);
+            $height = min((int)$height, self::MAX_IMAGE_DIMENSION);
 
             // Determina estensione e tipo MIME
             $mime = mime_content_type($path);
@@ -294,6 +346,146 @@ abstract class AbstractConverter implements ConverterInterface
     }
 
     /**
+     * MIME types consentiti per le immagini.
+     */
+    private const ALLOWED_IMAGE_MIMES = [
+        'image/png',
+        'image/jpeg',
+        'image/gif',
+        'image/bmp',
+        'image/webp',
+        'image/tiff',
+    ];
+
+    /**
+     * Estensioni file consentite per le immagini.
+     */
+    private const ALLOWED_IMAGE_EXTENSIONS = [
+        'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'tiff', 'tif',
+    ];
+
+    /**
+     * Dimensione massima consentita per un'immagine (5 MB).
+     */
+    private const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+    /**
+     * Dimensione massima consentita per un file DOCX (50 MB).
+     */
+    private const MAX_DOCX_SIZE = 50 * 1024 * 1024;
+
+    /**
+     * Numero massimo di file consentiti in un archivio ZIP.
+     */
+    private const MAX_ZIP_FILES = 500;
+
+    /**
+     * Dimensione massima consentita per un singolo file XML all'interno dello ZIP (10 MB).
+     */
+    private const MAX_ZIP_ENTRY_SIZE = 10 * 1024 * 1024;
+
+    /**
+     * Dimensione massima consentita per la larghezza/altezza di un'immagine in pixel.
+     */
+    private const MAX_IMAGE_DIMENSION = 10000;
+
+    /**
+     * Mappatura estensione -> MIME types consentiti.
+     */
+    private const EXTENSION_TO_MIME = [
+        'png' => ['image/png'],
+        'jpg' => ['image/jpeg'],
+        'jpeg' => ['image/jpeg'],
+        'gif' => ['image/gif'],
+        'bmp' => ['image/bmp'],
+        'webp' => ['image/webp'],
+        'tiff' => ['image/tiff', 'image/tif'],
+        'tif' => ['image/tiff', 'image/tif'],
+    ];
+
+    /**
+     * Valida che un file sia un'immagine sicura da elaborare.
+     *
+     * @param string $path Percorso del file immagine.
+     * @return true Se valido.
+     * @throws \InvalidArgumentException Se il file non è un'immagine valida.
+     */
+    protected function validateImagePath(string $path): true
+    {
+        if (!is_string($path) || $path === '') {
+            throw new \InvalidArgumentException('Percorso immagine non valido.');
+        }
+
+        if (!file_exists($path) || !is_file($path)) {
+            throw new \InvalidArgumentException("File immagine non trovato: $path");
+        }
+
+        if (!is_readable($path)) {
+            throw new \InvalidArgumentException("File immagine non leggibile: $path");
+        }
+
+        // Protezione path traversal: verifica con realpath
+        $realPath = realpath($path);
+        if ($realPath === false) {
+            throw new \InvalidArgumentException(
+                'Percorso immagine non risolvibile: ' . $path
+            );
+        }
+
+        // Verifica che il percorso non contenga traversal
+        if (strpos($path, '..') !== false) {
+            throw new \InvalidArgumentException(
+                'Percorso immagine contiene componenti di traversal: ' . $path
+            );
+        }
+
+        // Controllo dimensione massima
+        $size = filesize($path);
+        if ($size === false || $size > self::MAX_IMAGE_SIZE) {
+            throw new \InvalidArgumentException(
+                'File immagine troppo grande o dimensione non determinabile: ' . $path
+            );
+        }
+
+        // Validazione estensione file (whitelist)
+        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+        if ($ext === '' || !in_array($ext, self::ALLOWED_IMAGE_EXTENSIONS, true)) {
+            throw new \InvalidArgumentException(
+                'Estensione immagine non consentita: ' . $ext
+            );
+        }
+
+        // Validazione MIME type (controllo contenuto reale)
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $realMime = $finfo->file($path);
+        if ($realMime === false || !in_array($realMime, self::ALLOWED_IMAGE_MIMES, true)) {
+            throw new \InvalidArgumentException(
+                'Tipo MIME immagine non consentito: ' . $realMime
+            );
+        }
+
+        // Validazione croce: verifica che il MIME corrisponda all'estensione
+        if (isset(self::EXTENSION_TO_MIME[$ext])) {
+            $allowedMimes = self::EXTENSION_TO_MIME[$ext];
+            if (!in_array($realMime, $allowedMimes, true)) {
+                throw new \InvalidArgumentException(
+                    "Il tipo MIME '$realMime' non corrisponde all'estensione '$ext'"
+                );
+            }
+        }
+
+        // Verifica che non sia un file nascosto (inizia con .)
+        $basename = basename($path);
+        if ($basename[0] === '.') {
+            throw new \InvalidArgumentException(
+                'File immagine nascosto non consentito: ' . $path
+            );
+        }
+
+        return true;
+    }
+
+    /**
      * Determina l'estensione del file immagine.
      *
      * @param string $mime Tipo MIME.
@@ -338,6 +530,9 @@ abstract class AbstractConverter implements ConverterInterface
      */
     protected function resizeImage(string $path, int $width, int $height, string $ext): string
     {
+        // Validazione sicurezza: verifica che il file sia un'immagine valida
+        $this->validateImagePath($path);
+
         if (!function_exists('imagecreatetruecolor')) {
             return file_get_contents($path);
         }
@@ -410,6 +605,109 @@ abstract class AbstractConverter implements ConverterInterface
         imagedestroy($dst);
 
         return ($saved !== false) ? $bytes : file_get_contents($path);
+    }
+
+    /**
+     * Normalizza un percorso rimuovendo componenti di traversal.
+     *
+     * @param string $path Percorso da normalizzare.
+     * @return string Percorso normalizzato.
+     */
+    protected function sanitizePath(string $path): string
+    {
+        // Rimuovi caratteri null byte
+        $path = str_replace("\0", '', $path);
+
+        // Converti backslash in forward slash per uniformità
+        $path = str_replace('\\', '/', $path);
+
+        // Rimuovi doppie barre (ma mantieni:// protocolli)
+        $path = preg_replace('#/+#', '/', $path);
+
+        // Rimuovi componenti . e .. dal percorso
+        $parts = explode('/', $path);
+        $clean = [];
+        foreach ($parts as $part) {
+            if ($part === '.' || $part === '..') {
+                continue;
+            }
+            $clean[] = $part;
+        }
+
+        return implode('/', $clean);
+    }
+
+    /**
+     * Rimuove le entità XML esterne (XXE) dal contenuto XML.
+     * Previene attacchi XXE rimuovendo DOCTYPE e dichiarazioni di entità esterne.
+     *
+     * @param string $xmlContent Contenuto XML.
+     * @return string Contenuto XML sanitizzato.
+     */
+    protected function sanitizeXmlEntities(string $xmlContent): string
+    {
+        // Rimuovi DOCTYPE che dichiarano entità esterne
+        // Pattern: <!DOCTYPE ... SYSTEM "..." ... >
+        $xmlContent = preg_replace(
+            '/<!DOCTYPE[^>]*>/is',
+            '',
+            $xmlContent
+        );
+
+        // Rimuovi dichiarazioni di entità esterne
+        // Pattern: <!ENTITY ... SYSTEM "..." ... >
+        $xmlContent = preg_replace(
+            '/<!ENTITY[^>]*>/is',
+            '',
+            $xmlContent
+        );
+
+        // Rimuovi entità parametriche esterne
+        // Pattern: <!ENTITY % ... SYSTEM "..." ... >
+        $xmlContent = preg_replace(
+            '/<!ENTITY\s+%[^>]*>/is',
+            '',
+            $xmlContent
+        );
+
+        // Rimuovi riferimenti a entità non definite
+        // (mantieni solo le entità standard XML)
+        $xmlContent = preg_replace(
+            '/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)/',
+            '&amp;',
+            $xmlContent
+        );
+
+        return $xmlContent;
+    }
+
+    /**
+     * Escapa un valore per uso sicuro in contesto XML.
+     * Più robusto di htmlspecialchars per l'XML.
+     *
+     * @param string $value Valore da escapppare.
+     * @return string Valore escapppato.
+     */
+    protected function escapeXmlValue(string $value): string
+    {
+        // Prima di tutto, escapppa i caratteri XML base
+        $value = str_replace(
+            ['&', '<', '>', "'", '"'],
+            ['&amp;', '&lt;', '&gt;', '&apos;', '&quot;'],
+            $value
+        );
+
+        // Rimuovi caratteri di controllo non consentiti in XML
+        // (consenti tab, newline, carriage return)
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $value);
+
+        // Proteggi contro injection di CDATA
+        $value = str_replace(']]>', ']]&gt;', $value);
+
+        // Proteggi contro injection di commenti XML
+        $value = str_replace('--', '-&#45;', $value);
+
+        return $value;
     }
 
     /**

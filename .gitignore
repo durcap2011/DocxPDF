@@ -1,5 +1,8 @@
-gits/vendor/
+vendor/
 composer.lock
+.phpunit.result.cache
+.env
+.env.*
 .idea/
 .vscode/
 *.swp
@@ -7,3 +10,12 @@ composer.lock
 *~
 .DS_Store
 Thumbs.db
+*.log
+*.sql
+*.sql.gz
+*.bak
+*.backup
+*.pem
+*.key
+*.crt
+*.phar

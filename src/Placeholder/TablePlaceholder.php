@@ -6,6 +6,70 @@ namespace DocxPDF\Placeholder;
 
 class TablePlaceholder extends AbstractPlaceholder
 {
+    /**
+     * Valida e sanitizza un valore attributo XML.
+     *
+     * @param string $value Valore da validare.
+     * @param int $maxLen Lunghezza massima.
+     * @return string Valore sanitizzato.
+     */
+    private static function sanitizeXmlAttribute(string $value, int $maxLen = 100): string
+    {
+        // Rimuovi caratteri null byte
+        $value = str_replace("\0", '', $value);
+
+        // Rimuovi caratteri di controllo (tranne tab, newline, CR)
+        $value = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $value);
+
+        // Escapa i caratteri XML base
+        $value = str_replace(
+            ['&', '<', '>', "'", '"'],
+            ['&amp;', '&lt;', '&gt;', '&apos;', '&quot;'],
+            $value
+        );
+
+        // Limita la lunghezza
+        $value = substr($value, 0, $maxLen);
+
+        return trim($value);
+    }
+
+    /**
+     * Valida che un colore sia un valore hex valido.
+     *
+     * @param string $color Colore da validare.
+     * @return string Colore validato o vuoto se invalido.
+     */
+    private static function validateColor(string $color): string
+    {
+        // Rimuovi #
+        $color = ltrim($color, '#');
+
+        // Valida formato hex (3, 6, o 8 caratteri)
+        if (preg_match('/^[0-9a-fA-F]{3,8}$/', $color)) {
+            return strtoupper($color);
+        }
+
+        return '';
+    }
+
+    /**
+     * Valida che un valore sia un intero positivo.
+     *
+     * @param mixed $value Valore da validare.
+     * @param int $min Valore minimo.
+     * @param int $max Valore massimo.
+     * @return int Valore validato.
+     */
+    private static function validateInt($value, int $min = 0, int $max = 100000): int
+    {
+        $value = filter_var($value, FILTER_VALIDATE_INT);
+        if ($value === false || $value < $min || $value > $max) {
+            return $min;
+        }
+        return $value;
+    }
+
     public function getType(): string
     {
         return 'table';
@@ -106,32 +170,45 @@ class TablePlaceholder extends AbstractPlaceholder
         $xml = '';
 
         if (isset($config['style'])) {
-            $xml .= '<w:tblStyle w:val="' . htmlspecialchars($config['style']) . '"/>';
+            $style = self::sanitizeXmlAttribute((string)$config['style']);
+            if ($style !== '') {
+                $xml .= '<w:tblStyle w:val="' . $style . '"/>';
+            } else {
+                $xml .= '<w:tblStyle w:val="TableGrid"/>';
+            }
         } else {
             $xml .= '<w:tblStyle w:val="TableGrid"/>';
         }
 
         // Table width
         if (isset($config['width'])) {
-            $type = $config['widthType'] ?? 'dxa';
-            $xml .= '<w:tblW w:w="' . (int)$config['width'] . '" w:type="' . $type . '"/>';
+            $width = self::validateInt($config['width'], 0, 100000);
+            $type = self::sanitizeXmlAttribute($config['widthType'] ?? 'dxa', 10);
+            $xml .= '<w:tblW w:w="' . $width . '" w:type="' . $type . '"/>';
         } else {
             $xml .= '<w:tblW w:w="0" w:type="auto"/>';
         }
 
         // Table indentation from left margin
         if (isset($config['indent'])) {
-            $xml .= '<w:tblInd w:w="' . (int)$config['indent'] . '" w:type="dxa"/>';
+            $indent = self::validateInt($config['indent'], 0, 100000);
+            $xml .= '<w:tblInd w:w="' . $indent . '" w:type="dxa"/>';
         }
 
         // Cell spacing
         if (isset($config['cellSpacing'])) {
-            $xml .= '<w:tblCellSpacing w:w="' . (int)$config['cellSpacing'] . '" w:type="dxa"/>';
+            $spacing = self::validateInt($config['cellSpacing'], 0, 1000);
+            $xml .= '<w:tblCellSpacing w:w="' . $spacing . '" w:type="dxa"/>';
         }
 
         // Table layout
         if (isset($config['layout'])) {
-            $xml .= '<w:tblLayout w:type="' . htmlspecialchars($config['layout']) . '"/>';
+            $layout = self::sanitizeXmlAttribute((string)$config['layout'], 20);
+            // Whitelist: solo valori consentiti
+            $allowedLayouts = ['fixed', 'autofit'];
+            if (in_array($layout, $allowedLayouts, true)) {
+                $xml .= '<w:tblLayout w:type="' . $layout . '"/>';
+            }
         }
 
         // Table borders
@@ -143,16 +220,16 @@ class TablePlaceholder extends AbstractPlaceholder
             $xml .= '<w:tblCellMar>';
             $cp = $config['cellPadding'];
             if (isset($cp['top'])) {
-                $xml .= '<w:top w:w="' . (int)$cp['top'] . '" w:type="dxa"/>';
+                $xml .= '<w:top w:w="' . self::validateInt($cp['top'], 0, 10000) . '" w:type="dxa"/>';
             }
             if (isset($cp['left'])) {
-                $xml .= '<w:left w:w="' . (int)$cp['left'] . '" w:type="dxa"/>';
+                $xml .= '<w:left w:w="' . self::validateInt($cp['left'], 0, 10000) . '" w:type="dxa"/>';
             }
             if (isset($cp['bottom'])) {
-                $xml .= '<w:bottom w:w="' . (int)$cp['bottom'] . '" w:type="dxa"/>';
+                $xml .= '<w:bottom w:w="' . self::validateInt($cp['bottom'], 0, 10000) . '" w:type="dxa"/>';
             }
             if (isset($cp['right'])) {
-                $xml .= '<w:right w:w="' . (int)$cp['right'] . '" w:type="dxa"/>';
+                $xml .= '<w:right w:w="' . self::validateInt($cp['right'], 0, 10000) . '" w:type="dxa"/>';
             }
             $xml .= '</w:tblCellMar>';
         }
@@ -166,13 +243,18 @@ class TablePlaceholder extends AbstractPlaceholder
                 'start' => 'start',
                 'end' => 'end',
             ];
-            $val = $alignMap[$config['align']] ?? $config['align'];
+            $align = self::sanitizeXmlAttribute((string)$config['align'], 10);
+            $val = $alignMap[$align] ?? 'start';
             $xml .= '<w:jc w:val="' . $val . '"/>';
         }
 
         // Cell vertical alignment default
         if (isset($config['vAlign'])) {
-            $xml .= '<w:vAlign w:val="' . htmlspecialchars($config['vAlign']) . '"/>';
+            $vAlign = self::sanitizeXmlAttribute((string)$config['vAlign'], 10);
+            $allowedVAligns = ['top', 'center', 'bottom'];
+            if (in_array($vAlign, $allowedVAligns, true)) {
+                $xml .= '<w:vAlign w:val="' . $vAlign . '"/>';
+            }
         }
 
         // Table look
@@ -190,6 +272,14 @@ class TablePlaceholder extends AbstractPlaceholder
             'sz' => '4',
             'space' => '0',
             'color' => 'auto',
+        ];
+
+        // Whitelist per i valori di bordo consentiti
+        $allowedBorderVals = [
+            'single', 'double', 'thick', 'thinner', 'thicker',
+            'none', 'hidden', 'dot', 'dash', 'dashDot',
+            'dashDotDot', 'triple', 'thinThick', 'thickThin',
+            'thinThickThin', 'thickThinThick', 'none2',
         ];
 
         if ($borders === null) {
@@ -210,10 +300,24 @@ class TablePlaceholder extends AbstractPlaceholder
         foreach (['top', 'left', 'bottom', 'right', 'insideH', 'insideV'] as $edge) {
             if (isset($borders[$edge])) {
                 $b = array_merge($defaults, (array)$borders[$edge]);
-                $xml .= '<w:' . $edge . ' w:val="' . htmlspecialchars($b['val'])
-                    . '" w:sz="' . (int)$b['sz']
-                    . '" w:space="' . (int)$b['space']
-                    . '" w:color="' . htmlspecialchars($b['color']) . '"/>';
+
+                // Valida e sanitizza i valori
+                $val = self::sanitizeXmlAttribute((string)$b['val'], 20);
+                if (!in_array($val, $allowedBorderVals, true)) {
+                    $val = $defaults['val'];
+                }
+
+                $sz = self::validateInt($b['sz'], 0, 96);
+                $space = self::validateInt($b['space'], 0, 31);
+                $color = self::validateColor((string)$b['color']);
+                if ($color === '') {
+                    $color = $defaults['color'];
+                }
+
+                $xml .= '<w:' . $edge . ' w:val="' . $val
+                    . '" w:sz="' . $sz
+                    . '" w:space="' . $space
+                    . '" w:color="' . $color . '"/>';
             } else {
                 $xml .= '<w:' . $edge . ' w:val="' . $defaults['val']
                     . '" w:sz="' . $defaults['sz']
@@ -235,8 +339,13 @@ class TablePlaceholder extends AbstractPlaceholder
             $xml .= '<w:tblHeader/>';
         }
         if (isset($config['rowHeight'])) {
-            $rule = $config['rowHeightRule'] ?? 'atLeast';
-            $xml .= '<w:trHeight w:val="' . (int)$config['rowHeight'] . '" w:hRule="' . $rule . '"/>';
+            $rowHeight = self::validateInt($config['rowHeight'], 0, 100000);
+            $rule = self::sanitizeXmlAttribute($config['rowHeightRule'] ?? 'atLeast', 10);
+            $allowedRules = ['atLeast', 'exact', 'auto'];
+            if (!in_array($rule, $allowedRules, true)) {
+                $rule = 'atLeast';
+            }
+            $xml .= '<w:trHeight w:val="' . $rowHeight . '" w:hRule="' . $rule . '"/>';
         }
         if (!empty($config['cantSplit'])) {
             $xml .= '<w:cantSplit/>';
@@ -253,18 +362,25 @@ class TablePlaceholder extends AbstractPlaceholder
 
             // Cell width
             if (isset($config['colWidth'])) {
-                $xml .= '<w:tcW w:w="' . (int)$config['colWidth'] . '" w:type="dxa"/>';
+                $colWidth = self::validateInt($config['colWidth'], 0, 100000);
+                $xml .= '<w:tcW w:w="' . $colWidth . '" w:type="dxa"/>';
             }
 
             // Cell vertical alignment
             if (isset($config['vAlign'])) {
-                $xml .= '<w:vAlign w:val="' . htmlspecialchars($config['vAlign']) . '"/>';
+                $vAlign = self::sanitizeXmlAttribute((string)$config['vAlign'], 10);
+                $allowedVAligns = ['top', 'center', 'bottom'];
+                if (in_array($vAlign, $allowedVAligns, true)) {
+                    $xml .= '<w:vAlign w:val="' . $vAlign . '"/>';
+                }
             }
 
             // Header row shading
             if ($isHeader && isset($config['headerBgColor'])) {
-                $color = strtoupper(ltrim($config['headerBgColor'], '#'));
-                $xml .= '<w:shd w:val="clear" w:color="auto" w:fill="' . $color . '"/>';
+                $color = self::validateColor((string)$config['headerBgColor']);
+                if ($color !== '') {
+                    $xml .= '<w:shd w:val="clear" w:color="auto" w:fill="' . $color . '"/>';
+                }
             }
 
             // Cell vertical merge
@@ -278,7 +394,8 @@ class TablePlaceholder extends AbstractPlaceholder
 
             // Cell grid span
             if (isset($cell['gridSpan'])) {
-                $xml .= '<w:gridSpan w:val="' . (int)$cell['gridSpan'] . '"/>';
+                $gridSpan = self::validateInt($cell['gridSpan'], 1, 64);
+                $xml .= '<w:gridSpan w:val="' . $gridSpan . '"/>';
             }
 
             $xml .= '</w:tcPr>';
@@ -287,7 +404,11 @@ class TablePlaceholder extends AbstractPlaceholder
 
             // Paragraph alignment from cell
             if (isset($cell['align'])) {
-                $xml .= '<w:pPr><w:jc w:val="' . htmlspecialchars($cell['align']) . '"/></w:pPr>';
+                $cellAlign = self::sanitizeXmlAttribute((string)$cell['align'], 10);
+                $allowedAligns = ['left', 'center', 'right', 'start', 'end', 'both'];
+                if (in_array($cellAlign, $allowedAligns, true)) {
+                    $xml .= '<w:pPr><w:jc w:val="' . $cellAlign . '"/></w:pPr>';
+                }
             }
 
             $cellSegments = $this->normalizeCell($cell);
@@ -298,7 +419,7 @@ class TablePlaceholder extends AbstractPlaceholder
                 if ($isHeader) {
                     $xml .= '<w:rPr><w:b/></w:rPr>';
                 }
-                $xml .= '<w:t>' . htmlspecialchars((string)$cell) . '</w:t>';
+                $xml .= '<w:t>' . htmlspecialchars((string)$cell, ENT_QUOTES) . '</w:t>';
                 $xml .= '</w:r>';
             }
             $xml .= '</w:p>';
