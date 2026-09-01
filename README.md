@@ -25,6 +25,7 @@ composer require durcap2011/docxpdf
 ```
 
 ## Utilizzo rapido
+Crea un file denominato **test.php**, e scrivi al suo interno il codice seguente:
 
 ```php
 <?php
@@ -48,7 +49,8 @@ Ora nella stessa cartella, crea il file **template.docx** ed incolla al suo inte
 Nome cliente: {{testo:nome_cliente}}    Data documento: {{testo:data}}
 Nome azienda: {{testo:azienda}}
 ```
-Eseguendo il codice php creato sopra, otterrai la sostituzione dei placeholder, con i dati passati alla funzione *convert*
+
+Eseguendo il codice php **(php test.php)** creato sopra, si genera un file pdf denominato **template.pdf** contenente i dati passati alla funzione *convert*
 
 ## Formato dei placeholder
 
