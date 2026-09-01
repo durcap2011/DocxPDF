@@ -60,10 +60,10 @@ Eseguendo il codice php **(php test.php)** creato sopra, si genera un file pdf d
 
 - **`tipo`** — il tipo di placeholder può assumere i seguenti valori:
     - tabella
-    - lista
+    - lista (liste puntate in docx)
     - testo
     - immagine
-    - lista_numerata
+    - lista_numerata (liste numerate in docx)
 
 - **`nome`** — la chiave nell'array `$data`
 
@@ -71,7 +71,7 @@ I dati vanno passati con la chiave completa `tipo:nome`:
 
 ```php
 $data = [
-    'lista:materiale'  => ['Forbici', 'Colla', 'Forbici'],
+    'lista:materiale'  => ['Forbici', 'Colla', 'Righello'],
     'tabella:prodotti' => [['Prodotto', 'Prezzo'], ['Laptop', '€999']],
     'testo:note'       => 'Consegna urgente',
     'immagine:logo'    => '/path/to/logo.png',
