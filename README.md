@@ -71,6 +71,7 @@ $data = [
 ```
 
 ## Tipi di placeholder
+Di seguiti alcuni esempi, di utilizzo dei placeholder, per ulteriori informazioni clicca [qui](FORMATTING.md)
 
 ### Testo semplice
 
