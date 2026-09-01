@@ -22,7 +22,7 @@
     },
     "keywords": ["docx", "pdf", "converter", "template", "placeholder", "word"],
     "support": {
-        "source": "https://github.com/mdurso/docx-pdf"
+        "source": "https://github.com/durcap2011/DocxPDF"
     },
     "config": {
         "sort-packages": true
