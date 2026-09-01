@@ -33,9 +33,9 @@ require_once 'vendor/autoload.php';
 use DocxPDF\DocxPDF;
 
 $data = [
-    'nome_cliente' => 'Mario Rossi',
-    'data'         => '25/12/2026',
-    'azienda'      => 'Agenzia Viaggi S.r.l.',
+    'testo:nome_cliente' => 'Mario Rossi',
+    'testo:data'         => '25/12/2026',
+    'testo:azienda'      => 'Agenzia Viaggi S.r.l.',
 ];
 
 $docxPDF = new DocxPDF();
@@ -43,6 +43,12 @@ $pdfPath = $docxPDF->convert('template.docx', $data);
 
 echo "PDF generato: $pdfPath";
 ```
+Ora nella stessa cartella, crea il file **template.docx** ed incolla al suo interno il seguente testo:
+```docx
+Nome cliente: {{testo:nome_cliente}}    Data documento: {{testo:data}}
+Nome azienda: {{testo:azienda}}
+```
+Eseguendo il codice php creato sopra, otterrai la sostituzione dei placeholder, con i dati passati alla funzione *convert*
 
 ## Formato dei placeholder
 
