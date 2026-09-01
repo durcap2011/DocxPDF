@@ -58,7 +58,13 @@ Eseguendo il codice php **(php test.php)** creato sopra, si genera un file pdf d
 {{tipo:nome}}
 ```
 
-- **`tipo`** — il tipo di placeholder (tabella, lista, testo, immagine, lista_numerata)
+- **`tipo`** — il tipo di placeholder può assumere i seguenti valori:
+    - tabella
+    - lista
+    - testo
+    - immagine
+    - lista_numerata
+
 - **`nome`** — la chiave nell'array `$data`
 
 I dati vanno passati con la chiave completa `tipo:nome`:
