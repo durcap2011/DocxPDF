@@ -19,7 +19,7 @@ use DocxPDF\DocxPDF;
 // Dati da sostituire (immagine come percorso file)
 $data = [
     'immagine:logo' => [
-        'path' => '/path/to/logo.jpg',
+        'path' => 'C:\\Users\\m.durso\\Pictures\\Screenshots\\example01.png',
         'width' => 200,
         'height' => 100,
     ],

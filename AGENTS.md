@@ -37,7 +37,7 @@ No linter, formatter, or CI is configured.
 
 ## Placeholder format
 
-`{{type:name}}` — the first capture group is the **type** (`lista`, `tabella`, etc.), the second is the **name** (the key in the `$data` array). This was recently fixed; the old code had them swapped.
+`{{type:name}}` — the first capture group is the **type** (`lista`, `tabella`, etc.), the second is the **name** (the key in the `$data` array).
 
 Data keys use the full `type:name` form: `$data['lista:materiale']`.
 
@@ -50,6 +50,20 @@ Rich text segments: pass an array of `['text' => '...', 'bold' => true, ...]` in
 - **Windows paths**: LibreOffice path detection uses `C:\Program Files\LibreOffice\program\soffice.exe`. The `exec()` calls use double quotes around paths with spaces.
 - **Security hardening**: `DocxPDF::convert()` validates path traversal, `LibreOfficeConverter` whitelists allowed LibreOffice paths, `AbstractConverter` validates image MIME types and limits DOCX/ZIP entry sizes to prevent zip bombs.
 - **Test quirks**: PHPUnit 9.x, `failOnRisky=true` and `failOnWarning=true` in `phpunit.xml.dist`. The `LibreOfficeConverterTest::testConstructorWithExplicitPath` expects an `InvalidArgumentException` for non-existent paths (post-security hardening).
+
+## Rich text handling
+
+- `replaceRichTextInline()` splits the containing `<w:r>` when a rich text placeholder is inline. The regex uses `[^<]*` (not `.*?`) to prevent matching across XML tag boundaries.
+- `html_entity_decode(..., ENT_XML1)` is called on extracted text before re-encoding to prevent double-encoding (`&#039;` → `&amp;#039;`).
+- `escapeXmlValue()` only escapes `&`, `<`, `>` — not `'` or `"`. These are safe in XML text content and do not need escaping outside of attribute values.
+- `RichTextSegment::toXmlString()` uses `htmlspecialchars($text, ENT_XML1)` to avoid converting `'` to `&#039;` (PHP 8.1+ default changed to `ENT_QUOTES`).
+- `PlaceholderParser::createPlaceholderByValue()` checks `RichTextSegment::isSegmentArray()` before the table check, since both are arrays of arrays.
+
+## Security considerations
+
+- `escapeXmlValue()` escapes `&`, `<`, `>` and strips control chars. CDATA (`]]>`) and comment (`--`) injection are blocked.
+- `sanitizeXmlEntities()` removes `<!DOCTYPE>`, `<!ENTITY>`, and undefined entity references to prevent XXE.
+- `generate_templates.php` uses `str_replace(['&','<','>'], ...)` instead of `htmlspecialchars()` to avoid encoding `'` to `&#039;` in template XML.
 
 ## File conventions
 

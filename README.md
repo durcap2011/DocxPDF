@@ -14,7 +14,7 @@ Un package PHP per convertire documenti DOCX in PDF, utilizzando template con **
 
 ## Requisiti
 
-- PHP >= 7.4
+- PHP >= 8.1
 - Estensione `zip` (di solito già inclusa)
 - **LibreOffice** — utilizzato per la conversione dei documenti DOCX in PDF, deve essere installato e accessibile nell'ambiente in cui viene eseguita la conversione.
 
@@ -91,6 +91,8 @@ $data = [
 
 ### Tabelle
 
+Sintassi semplice — la prima riga è trattata come intestazione (grassetto automatico) e viene ripetuta su ogni pagina:
+
 ```php
 $data = [
     'tabella:prodotti' => [
@@ -100,6 +102,8 @@ $data = [
     ],
 ];
 ```
+
+> **Nota:** questa è un'alternativa alla sintassi con `config`/`rows` documentata sotto. Entrambe le forme sono supportate.
 
 Le celle possono contenere testo formattato:
 
@@ -126,8 +130,9 @@ Passa un array con chiave `config` e `rows` per personalizzare la tabella:
 $data = [
     'tabella:dati' => [
         'config' => [
-            'repeatHeader'  => true,          // Ripeti intestazione su ogni pagina
+            'repeatHeader'  => true,          // Ripeti intestazione su ogni pagina (default: true; la prima riga di rows diventa intestazione)
             'chunkSize'     => 15,            // Righe per chunk prima del page break
+            'style'         => 'TableGrid',   // stile tabella Word (default: TableGrid)
             'align'         => 'center',      // allineamento tabella (left/center/right)
             'width'         => 9000,          // larghezza in twips
             'widthType'     => 'dxa',         // dxa | pct | auto
@@ -135,6 +140,7 @@ $data = [
             'cellSpacing'   => 10,            // spazio tra celle
             'layout'        => 'fixed',       // fixed | autofit
             'vAlign'        => 'center',      // allineamento verticale celle (top/center/bottom)
+            'colWidth'      => 2000,          // larghezza colonne in twips
             'rowHeight'     => 400,           // altezza righe in twips
             'rowHeightRule' => 'atLeast',     // atLeast | exact
             'cantSplit'     => true,          // non spezzare righe tra pagine
@@ -229,6 +235,8 @@ $data = [
 ];
 ```
 
+> **Nota:** l'inserimento effettivo dell'immagine nel documento DOCX viene gestito internamente dal convertitore (AbstractConverter). Il placeholder `{{immagine:nome}}` viene riconosciuto e l'immagine viene iniettata come drawing XML con relativa ridimensionamento. Le dimensioni `width` e `height` sono espresse in pixel.
+
 ## Convertitori
 
 ### LibreOffice (default)
@@ -245,6 +253,9 @@ $docxPDF = new DocxPDF();
 // Percorso esplicito (consigliato)
 $converter = new LibreOfficeConverter('C:\Program Files\LibreOffice\program\soffice.exe');
 $docxPDF = new DocxPDF($converter);
+
+// Cambia convertitore dopo l'istanziazione
+$docxPDF->setConverter($converter);
 ```
 
 ## Percorso di output
@@ -338,4 +349,4 @@ Nulla di quanto previsto nel presente disclaimer intende escludere o limitare ev
 
 ## License
 
-MIT — vedi il file `LICENSE`.
+MIT — vedi il file `LICENSE.md`.
