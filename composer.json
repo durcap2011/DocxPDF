@@ -1,5 +1,5 @@
 {
-    "name": "DocxPDF",
+    "name": "durcap2011/docxpdf",
     "description": "Convertitore DOCX in PDF con supporto a placeholder",
     "type": "library",
     "license": "MIT",
@@ -12,12 +12,12 @@
     },
     "autoload": {
         "psr-4": {
-            "DocxPDF\\": "src/"
+            "durcap2011\\DocxPDF\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "DocxPDF\\Tests\\": "tests/"
+            "durcap2011\\DocxPDF\\Tests\\": "tests/"
         }
     },
     "keywords": ["docx", "pdf", "converter", "template", "placeholder", "word"],

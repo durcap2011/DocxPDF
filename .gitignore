@@ -2,6 +2,7 @@
 composer.lock
 .phpunit.result.cache
 AGENTS.md
+docxPDF.md
 .env
 .env.*
 .idea/
