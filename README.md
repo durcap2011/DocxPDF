@@ -30,7 +30,7 @@ composer require durcap2011/docxpdf
 <?php
 require_once 'vendor/autoload.php';
 
-use DocxPDF\DocxPDF;
+use durcap2011\DocxPDF\DocxPDF;
 
 $data = [
     'testo:nome_cliente' => 'Mario Rossi',
