@@ -21,7 +21,7 @@ Un package PHP per convertire documenti DOCX in PDF, utilizzando template con **
 ## Installazione
 
 ```bash
-composer require durcap/docx-pdf
+composer require DocxPDF
 ```
 
 ## Utilizzo rapido

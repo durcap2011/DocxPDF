@@ -1,5 +1,5 @@
 {
-    "name": "durcap/docx-pdf",
+    "name": "DocxPDF",
     "description": "Convertitore DOCX in PDF con supporto a placeholder",
     "type": "library",
     "license": "MIT",
