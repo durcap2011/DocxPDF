@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF\Tests\Placeholder;
+namespace durcap2011\DocxPDF\Tests\Placeholder;
 
 use PHPUnit\Framework\TestCase;
-use DocxPDF\Placeholder\ListPlaceholder;
+use durcap2011\DocxPDF\Placeholder\ListPlaceholder;
 
 class ListPlaceholderTest extends TestCase
 {

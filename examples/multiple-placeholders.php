@@ -24,7 +24,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use DocxPDF\DocxPDF;
+use durcap2011\DocxPDF\DocxPDF;
 
 $data_table = [
     [

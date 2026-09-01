@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF\Tests;
+namespace durcap2011\DocxPDF\Tests;
 
 use PHPUnit\Framework\TestCase;
-use DocxPDF\LibreOfficeConverter;
+use durcap2011\DocxPDF\LibreOfficeConverter;
 
 class LibreOfficeConverterTest extends TestCase
 {

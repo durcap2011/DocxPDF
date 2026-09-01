@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF\Placeholder;
+namespace durcap2011\DocxPDF\Placeholder;
 
 /**
  * Classe astratta per i placeholder.

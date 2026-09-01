@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF;
+namespace durcap2011\DocxPDF;
 
 /**
  * Classe principale per la conversione DOCX -> PDF.

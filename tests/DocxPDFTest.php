@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF\Tests;
+namespace durcap2011\DocxPDF\Tests;
 
 use PHPUnit\Framework\TestCase;
-use DocxPDF\DocxPDF;
-use DocxPDF\ConverterInterface;
+use durcap2011\DocxPDF\DocxPDF;
+use durcap2011\DocxPDF\ConverterInterface;
 
 class DocxPDFTest extends TestCase
 {
     public function testDefaultConverterIsLibreOffice(): void
     {
         $docxPDF = new DocxPDF();
-        $this->assertInstanceOf(\DocxPDF\LibreOfficeConverter::class, $this->getConverter($docxPDF));
+        $this->assertInstanceOf(\durcap2011\DocxPDF\LibreOfficeConverter::class, $this->getConverter($docxPDF));
     }
 
     public function testSetConverter(): void

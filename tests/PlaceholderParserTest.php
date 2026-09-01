@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF\Tests\Placeholder;
+namespace durcap2011\DocxPDF\Tests\Placeholder;
 
 use PHPUnit\Framework\TestCase;
-use DocxPDF\Placeholder\PlaceholderParser;
-use DocxPDF\Placeholder\TextPlaceholder;
-use DocxPDF\Placeholder\TablePlaceholder;
-use DocxPDF\Placeholder\ListPlaceholder;
-use DocxPDF\Placeholder\ImagePlaceholder;
+use durcap2011\DocxPDF\Placeholder\PlaceholderParser;
+use durcap2011\DocxPDF\Placeholder\TextPlaceholder;
+use durcap2011\DocxPDF\Placeholder\TablePlaceholder;
+use durcap2011\DocxPDF\Placeholder\ListPlaceholder;
+use durcap2011\DocxPDF\Placeholder\ImagePlaceholder;
 
 class PlaceholderParserTest extends TestCase
 {

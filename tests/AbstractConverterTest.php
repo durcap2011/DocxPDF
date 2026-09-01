@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF\Tests;
+namespace durcap2011\DocxPDF\Tests;
 
 use PHPUnit\Framework\TestCase;
-use DocxPDF\Placeholder\PlaceholderParser;
-use DocxPDF\Placeholder\TextPlaceholder;
-use DocxPDF\Placeholder\TablePlaceholder;
-use DocxPDF\Placeholder\ListPlaceholder;
+use durcap2011\DocxPDF\Placeholder\PlaceholderParser;
+use durcap2011\DocxPDF\Placeholder\TextPlaceholder;
+use durcap2011\DocxPDF\Placeholder\TablePlaceholder;
+use durcap2011\DocxPDF\Placeholder\ListPlaceholder;
 
 class AbstractConverterTest extends TestCase
 {
@@ -16,7 +16,7 @@ class AbstractConverterTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->converter = new class extends \DocxPDF\AbstractConverter {
+        $this->converter = new class extends \durcap2011\DocxPDF\AbstractConverter {
             public function convert(string $docxPath, string $pdfPath, array $data): bool
             {
                 return true;

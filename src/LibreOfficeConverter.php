@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF;
+namespace durcap2011\DocxPDF;
 
 /**
  * Convertitore che utilizza LibreOffice per generare il PDF.

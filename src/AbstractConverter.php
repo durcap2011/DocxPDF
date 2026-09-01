@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace DocxPDF;
+namespace durcap2011\DocxPDF;
 
 /**
  * Classe astratta per i convertitori DOCX -> PDF.
@@ -19,14 +19,14 @@ abstract class AbstractConverter implements ConverterInterface
      */
     protected function replacePlaceholders(string $xmlContent, array $data): string
     {
-        $parser = new \DocxPDF\Placeholder\PlaceholderParser();
+        $parser = new \durcap2011\DocxPDF\Placeholder\PlaceholderParser();
         $placeholders = $parser->parse($xmlContent, $data);
 
         foreach ($placeholders as $fullMatch => $placeholder) {
-            if ($placeholder instanceof \DocxPDF\Placeholder\TextPlaceholder) {
+            if ($placeholder instanceof \durcap2011\DocxPDF\Placeholder\TextPlaceholder) {
                 $value = $placeholder->getValue();
                 // Rich text: split the containing <w:r> and insert formatted runs
-                if (is_array($value) && \DocxPDF\Placeholder\RichTextSegment::isSegmentArray($value)) {
+                if (is_array($value) && \durcap2011\DocxPDF\Placeholder\RichTextSegment::isSegmentArray($value)) {
                     $xmlContent = $this->replaceRichTextInline($xmlContent, $fullMatch, $placeholder);
                 } else {
                     // Testo semplice: inserisci il valore escapato nel testo esistente
@@ -53,10 +53,10 @@ abstract class AbstractConverter implements ConverterInterface
      *
      * @param string $xmlContent Contenuto XML.
      * @param string $fullMatch Testo completo del placeholder (es. "{{prezzo}}").
-     * @param \DocxPDF\Placeholder\TextPlaceholder $placeholder Placeholder con valore rich text.
+     * @param \durcap2011\DocxPDF\Placeholder\TextPlaceholder $placeholder Placeholder con valore rich text.
      * @return string Contenuto XML aggiornato.
      */
-    private function replaceRichTextInline(string $xmlContent, string $fullMatch, \DocxPDF\Placeholder\TextPlaceholder $placeholder): string
+    private function replaceRichTextInline(string $xmlContent, string $fullMatch, \durcap2011\DocxPDF\Placeholder\TextPlaceholder $placeholder): string
     {
         // Cerca il <w:r> che contiene il placeholder nel suo <w:t>
         // Gruppo 1: attributi del <w:r> (es. " w:rStyle=\"...\"")
