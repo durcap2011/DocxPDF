@@ -1,31 +1,31 @@
 # DocxPDF
 
-Un package PHP per convertire documenti DOCX in PDF, utilizzando template con **placeholder**. Genera PDF partendo da documenti Word, senza gestire manualmente l'HTML.
+A PHP package for converting DOCX documents to PDF, using templates with **placeholders**. Generates PDFs from Word documents, without manually handling HTML.
 
-## Caratteristiche
+## Features
 
-- **Template DOCX** — usa documenti Word come template con placeholder `{{tipo:nome}}`
-- **Testo formattato (Rich Text)** — supporto a grassetto, corsivo, colori, pedice, apice, font personalizzati e altre proprietà di formattazione supportate
-- **Tabelle** — supporto a intestazioni ripetute su più pagine, bordi personalizzabili, larghezza, allineamento, colspan e rowspan
-- **Liste puntate e numerate** — con supporto a formattazione ricca per ogni elemento
-- **Immagini** — inserimento dinamico con ridimensionamento automatico
-- **LibreOffice** — conversione fedele all'originale tramite soffice --headless
-- **Zero framework** — PHP puro, progettato per essere utilizzabile in diversi tipi di progetto PHP
+- **DOCX Templates** — use Word documents as templates with `{{type:name}}` placeholders
+- **Rich Text** — support for bold, italic, colors, subscript, superscript, custom fonts, and other formatting properties
+- **Tables** — support for repeated headers across pages, customizable borders, width, alignment, colspan, and rowspan
+- **Bulleted and numbered lists** — with rich formatting support for each item
+- **Images** — dynamic insertion with automatic resizing
+- **LibreOffice** — faithful conversion via soffice --headless
+- **Zero framework** — pure PHP, designed to be usable in various types of PHP projects
 
-## Requisiti
+## Requirements
 
 - PHP >= 8.1
-- Estensione `zip` (di solito già inclusa)
-- **LibreOffice** — utilizzato per la conversione dei documenti DOCX in PDF, deve essere installato e accessibile nell'ambiente in cui viene eseguita la conversione.
+- `zip` extension (usually already included)
+- **LibreOffice** — used for converting DOCX documents to PDF, must be installed and accessible in the environment where the conversion is performed.
 
-## Installazione
+## Installation
 
 ```bash
 composer require durcap2011/docxpdf
 ```
 
-## Utilizzo rapido
-Crea un file denominato **test.php**, e scrivi al suo interno il codice seguente:
+## Quick Start
+Create a file named **test.php**, and write the following code inside it:
 
 ```php
 <?php
@@ -44,30 +44,30 @@ $pdfPath = $docxPDF->convert('template.docx', $data);
 
 echo "PDF generato: $pdfPath";
 ```
-Ora nella stessa cartella, crea il file **template.docx** ed incolla al suo interno il seguente testo:
+Now in the same folder, create the file **template.docx** and paste the following text inside it:
 ```docx
 Nome cliente: {{testo:nome_cliente}}    Data documento: {{testo:data}}
 Nome azienda: {{testo:azienda}}
 ```
 
-Eseguendo il codice php **(php test.php)** creato sopra, si genera un file pdf denominato **template.pdf** contenente i dati passati alla funzione *convert*
+Running the PHP code above **(php test.php)** generates a PDF file named **template.pdf** containing the data passed to the *convert* function.
 
-## Formato dei placeholder
+## Placeholder format
 
 ```
-{{tipo:nome}}
+{{type:name}}
 ```
 
-- **`tipo`** — il tipo di placeholder può assumere i seguenti valori:
+- **`type`** — the placeholder type can be one of the following values:
     - tabella
-    - lista (liste puntate in docx)
+    - lista (bulleted lists in docx)
     - testo
     - immagine
-    - lista_numerata (liste numerate in docx)
+    - lista_numerata (numbered lists in docx)
 
-- **`nome`** — la chiave nell'array `$data`
+- **`name`** — the key in the `$data` array
 
-I dati vanno passati con la chiave completa `tipo:nome`:
+Data must be passed with the full `type:name` key:
 
 ```php
 $data = [
@@ -78,10 +78,10 @@ $data = [
 ];
 ```
 
-## Tipi di placeholder
-Di seguiti alcuni esempi, di utilizzo dei placeholder, per ulteriori informazioni clicca [qui](FORMATTING.md)
+## Placeholder types
+Below are some usage examples of placeholders, for more information click [here](FORMATTING.md)
 
-### Testo semplice
+### Plain text
 
 ```php
 $data = ['testo:nome' => 'Mario Rossi'];
@@ -89,9 +89,9 @@ $data = ['testo:nome' => 'Mario Rossi'];
 
 Template: `{{testo:nome}}`
 
-### Testo formattato (Rich Text)
+### Rich Text
 
-Passa un **array di segmenti**, ognuno con `text` e gli attributi desiderati:
+Pass an **array of segments**, each with `text` and the desired attributes:
 
 ```php
 $data = [
@@ -102,25 +102,25 @@ $data = [
 ];
 ```
 
-**Attributi disponibili:** `bold`, `italic`, `underline`, `strike`, `doubleStrike`, `superscript`, `subscript`, `font`, `fontSize`, `color`, `highlight`, `shading`, `caps`, `smallCaps`, `outline`, `shadow`, `emboss`, `imprint`, `spacing`.
+**Available attributes:** `bold`, `italic`, `underline`, `strike`, `doubleStrike`, `superscript`, `subscript`, `font`, `fontSize`, `color`, `highlight`, `shading`, `caps`, `smallCaps`, `outline`, `shadow`, `emboss`, `imprint`, `spacing`.
 
-### Tabelle
+### Tables
 
-Sintassi semplice — la prima riga è trattata come intestazione (grassetto automatico) e viene ripetuta su ogni pagina:
+Simple syntax — the first row is treated as a header (auto-bold) and is repeated on every page:
 
 ```php
 $data = [
     'tabella:prodotti' => [
-        ['Prodotto', 'Prezzo', 'Quantità'],   // Riga intestazione
-        ['Laptop',   '€999',  '10'],           // Riga dati
+        ['Prodotto', 'Prezzo', 'Quantità'],   // Header row
+        ['Laptop',   '€999',  '10'],           // Data row
         ['Mouse',    '€25',   '50'],
     ],
 ];
 ```
 
-> **Nota:** questa è un'alternativa alla sintassi con `config`/`rows` documentata sotto. Entrambe le forme sono supportate.
+> **Note:** this is an alternative to the `config`/`rows` syntax documented below. Both forms are supported.
 
-Le celle possono contenere testo formattato:
+Cells can contain rich text:
 
 ```php
 $data = [
@@ -137,36 +137,36 @@ $data = [
 ];
 ```
 
-#### Configurazione tabelle
+#### Table configuration
 
-Passa un array con chiave `config` e `rows` per personalizzare la tabella:
+Pass an array with `config` and `rows` keys to customize the table:
 
 ```php
 $data = [
     'tabella:dati' => [
         'config' => [
-            'repeatHeader'  => true,          // Ripeti intestazione su ogni pagina (default: true; la prima riga di rows diventa intestazione)
-            'chunkSize'     => 15,            // Righe per chunk prima del page break
-            'style'         => 'TableGrid',   // stile tabella Word (default: TableGrid)
-            'align'         => 'center',      // allineamento tabella (left/center/right)
-            'width'         => 9000,          // larghezza in twips
+            'repeatHeader'  => true,          // Repeat header on every page (default: true; the first row of rows becomes the header)
+            'chunkSize'     => 15,            // Rows per chunk before page break
+            'style'         => 'TableGrid',   // Word table style (default: TableGrid)
+            'align'         => 'center',      // Table alignment (left/center/right)
+            'width'         => 9000,          // Width in twips
             'widthType'     => 'dxa',         // dxa | pct | auto
-            'indent'        => 100,           // indentazione dal margine sinistro
-            'cellSpacing'   => 10,            // spazio tra celle
+            'indent'        => 100,           // Indent from left margin
+            'cellSpacing'   => 10,            // Space between cells
             'layout'        => 'fixed',       // fixed | autofit
-            'vAlign'        => 'center',      // allineamento verticale celle (top/center/bottom)
-            'colWidth'      => 2000,          // larghezza colonne in twips
-            'rowHeight'     => 400,           // altezza righe in twips
+            'vAlign'        => 'center',      // Vertical cell alignment (top/center/bottom)
+            'colWidth'      => 2000,          // Column width in twips
+            'rowHeight'     => 400,           // Row height in twips
             'rowHeightRule' => 'atLeast',     // atLeast | exact
-            'cantSplit'     => true,          // non spezzare righe tra pagine
-            'headerBgColor' => 'D9E2F3',      // colore sfondo intestazione
-            'borders' => [                    // bordi personalizzati
+            'cantSplit'     => true,          // Do not split rows across pages
+            'headerBgColor' => 'D9E2F3',      // Header background color
+            'borders' => [                    // Custom borders
                 'top'     => ['val' => 'single', 'sz' => '8', 'color' => '000000'],
                 'bottom'  => ['val' => 'double', 'sz' => '4', 'color' => 'FF0000'],
                 'insideH' => ['val' => 'single', 'sz' => '2', 'color' => 'CCCCCC'],
                 'insideV' => ['val' => 'none'],
             ],
-            'cellPadding' => [                // margini interni celle
+            'cellPadding' => [                // Cell inner margins
                 'top'    => 50,
                 'left'   => 100,
                 'bottom' => 50,
@@ -182,23 +182,23 @@ $data = [
 ];
 ```
 
-#### Attributi cella
+#### Cell attributes
 
-Ogni cella può essere una stringa o un array con:
+Each cell can be a string or an array with:
 
 ```php
-// Testo con colspan
+// Text with colspan
 ['text' => 'Titolo', 'bold' => true, 'gridSpan' => 3]
 
 // Vertical merge (rowspan)
-['text' => 'Prima', 'vMerge' => 'restart']   // prima riga
-['text' => 'Seconda', 'vMerge' => true]       // righe successive
+['text' => 'Prima', 'vMerge' => 'restart']   // first row
+['text' => 'Seconda', 'vMerge' => true]       // subsequent rows
 
-// Allineamento orizzontale
+// Horizontal alignment
 ['text' => 'Centrato', 'align' => 'center']
 ```
 
-### Liste puntate
+### Bulleted lists
 
 ```php
 $data = [
@@ -210,7 +210,7 @@ $data = [
 ];
 ```
 
-### Liste numerate
+### Numbered lists
 
 ```php
 $data = [
@@ -222,7 +222,7 @@ $data = [
 ];
 ```
 
-Gli elementi delle liste possono contenere formattazione:
+List items can contain formatting:
 
 ```php
 $data = [
@@ -234,13 +234,13 @@ $data = [
 ];
 ```
 
-### Immagini
+### Images
 
 ```php
-// Percorso semplice
+// Simple path
 $data = ['immagine:logo' => '/path/to/logo.png'];
 
-// Con dimensioni
+// With dimensions
 $data = [
     'immagine:logo' => [
         'path'   => '/path/to/logo.png',
@@ -250,56 +250,56 @@ $data = [
 ];
 ```
 
-> **Nota:** l'inserimento effettivo dell'immagine nel documento DOCX viene gestito internamente dal convertitore (AbstractConverter). Il placeholder `{{immagine:nome}}` viene riconosciuto e l'immagine viene iniettata come drawing XML con relativa ridimensionamento. Le dimensioni `width` e `height` sono espresse in pixel.
+> **Note:** the actual image insertion into the DOCX document is handled internally by the converter (AbstractConverter). The `{{immagine:name}}` placeholder is recognized and the image is injected as drawing XML with automatic resizing. The `width` and `height` dimensions are expressed in pixels.
 
-## Convertitori
+## Converters
 
 ### LibreOffice (default)
 
-Conversione generalmente fedele all'originale, compatibilmente con le funzionalità supportate da LibreOffice.
+Generally faithful conversion, compatible with the features supported by LibreOffice.
 
 ```php
 use DocxPDF\DocxPDF;
 use DocxPDF\LibreOfficeConverter;
 
-// Auto-rilevamento
+// Auto-detection
 $docxPDF = new DocxPDF();
 
-// Percorso esplicito (consigliato)
+// Explicit path (recommended)
 $converter = new LibreOfficeConverter('C:\Program Files\LibreOffice\program\soffice.exe');
 $docxPDF = new DocxPDF($converter);
 
-// Cambia convertitore dopo l'istanziazione
+// Change converter after instantiation
 $docxPDF->setConverter($converter);
 ```
 
-## Percorso di output
+## Output path
 
-Di default il PDF viene generato nella stessa cartella del template:
+By default the PDF is generated in the same folder as the template:
 
 ```php
-// Stessa cartella del template
+// Same folder as template
 $pdfPath = $docxPDF->convert('template.docx', $data);
 
-// Percorso personalizzato
+// Custom path
 $pdfPath = $docxPDF->convert('template.docx', $data, 'output/rapporto.pdf');
 ```
 
-## Esempi
+## Examples
 
-| File | Descrizione |
+| File | Description |
 |------|-------------|
-| `examples/text-simple.php` | Testo semplice e formattato |
-| `examples/table-simple.php` | Tabelle con celle formattate |
-| `examples/list-bullet.php` | Liste puntate |
-| `examples/list-numbered.php` | Liste numerate |
-| `examples/image-simple.php` | Immagini |
-| `examples/typed-placeholders.php` | Tipi specificati |
-| `examples/multiple-placeholders.php` | Multiplo placeholder |
-| `examples/header-footer.php` | Header e footer |
-| `examples/nested-data.php` | Dati annidati con formattazione |
+| `examples/text-simple.php` | Plain and formatted text |
+| `examples/table-simple.php` | Tables with formatted cells |
+| `examples/list-bullet.php` | Bulleted lists |
+| `examples/list-numbered.php` | Numbered lists |
+| `examples/image-simple.php` | Images |
+| `examples/typed-placeholders.php` | Typed placeholders |
+| `examples/multiple-placeholders.php` | Multiple placeholders |
+| `examples/header-footer.php` | Header and footer |
+| `examples/nested-data.php` | Nested data with formatting |
 
-## Struttura del progetto
+## Project structure
 
 ```
 docx-pdf/
@@ -324,44 +324,44 @@ docx-pdf/
 └── README.md
 ```
 
-## Limitazioni note
+## Known limitations
 
-- **LibreOffice ignora `<w:tblHeader/>`** — la ripetizione dell'intestazione su più pagine è gestita con page break forzati tra chunk di righe
-- **Immagini** — l'inserimento funziona solo con il convertitore LibreOffice
-I documenti forniti a LibreOffice dovrebbero essere trattati come input non attendibile e la conversione dovrebbe essere eseguita in un ambiente adeguatamente isolato quando i file provengono da utenti non fidati.
+- **LibreOffice ignores `<w:tblHeader/>`** — repeated header across pages is handled with forced page breaks between row chunks
+- **Images** — insertion only works with the LibreOffice converter
+Documents provided to LibreOffice should be treated as untrusted input and conversion should be performed in an adequately isolated environment when files come from untrusted users.
 
 ## Troubleshooting
 
-### LibreOffice non trovato
+### LibreOffice not found
 
 ```php
-// Specifica il percorso manualmente
+// Specify the path manually
 $converter = new LibreOfficeConverter('C:\\Program Files\\LibreOffice\\program\\soffice.exe');
 $docxPDF = new DocxPDF($converter);
 ```
 
-### Caratteri speciali non visualizzati
+### Special characters not displayed
 
-La corretta visualizzazione dei caratteri può dipendere dai font disponibili nel sistema e dalle impostazioni dell'ambiente LibreOffice.
-Verifica che i font utilizzati dal documento siano installati e disponibili nell'ambiente in cui viene eseguita la conversione.
+Correct character rendering may depend on the fonts available in the system and the LibreOffice environment settings.
+Verify that the fonts used by the document are installed and available in the environment where the conversion is performed.
 
 ## Disclaimer
 
-Questo package viene fornito "così com'è" e "secondo disponibilità", senza garanzie di alcun tipo, nella misura massima consentita dalla legge applicabile.
-Il package può contenere bug, limitazioni o problemi di compatibilità e il risultato generato può variare in base al documento DOCX di origine, alla versione di PHP, al sistema operativo, ai font installati, alla versione di LibreOffice e ad altri fattori dell'ambiente in cui viene utilizzato.
-L'autore non garantisce che il package o i documenti PDF generati siano privi di errori, completi, accurati, idonei a uno specifico scopo o compatibili con ogni ambiente o documento.
-L'utilizzatore è responsabile della verifica e della validazione dei documenti generati prima del loro utilizzo in produzione o per finalità legali, finanziarie, fiscali, normative, contrattuali o comunque critiche.
-Nella misura consentita dalla legge applicabile, l'autore non è responsabile per eventuali perdite, danni o conseguenze derivanti dall'utilizzo del package o dall'affidamento sui documenti generati tramite lo stesso.
-Nulla di quanto previsto nel presente disclaimer intende escludere o limitare eventuali responsabilità che, ai sensi della legge applicabile, non possono essere legalmente escluse o limitate.
+This package is provided "as is" and "as available", without warranties of any kind, to the maximum extent permitted by applicable law.
+The package may contain bugs, limitations, or compatibility issues, and the generated result may vary depending on the source DOCX document, the PHP version, the operating system, the installed fonts, the LibreOffice version, and other factors in the environment where it is used.
+The author does not guarantee that the package or the generated PDF documents are error-free, complete, accurate, suitable for a specific purpose, or compatible with any environment or document.
+The user is responsible for verifying and validating the generated documents before using them in production or for legal, financial, tax, regulatory, contractual, or otherwise critical purposes.
+To the extent permitted by applicable law, the author is not liable for any losses, damages, or consequences arising from the use of the package or reliance on the documents generated through it.
+Nothing in this disclaimer is intended to exclude or limit any liability that cannot be legally excluded or limited under applicable law.
 
-## Contribuire
+## Contributing
 
-1. Fork il progetto
-2. Crea un branch per la tua feature
-3. Commit le tue modifiche
-4. Push al branch
-5. Crea un Pull Request
+1. Fork the project
+2. Create a branch for your feature
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-MIT — vedi il file `LICENSE.md`.
+MIT — see the `LICENSE.md` file.
