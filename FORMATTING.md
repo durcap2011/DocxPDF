@@ -1,21 +1,21 @@
-# Guida alla Formattazione Testo
+# Text Formatting Guide
 
-DocxPDF supporta la formattazione inline del testo tramite **segmenti ricchi**. Ogni valore placeholder può essere:
+DocxPDF supports inline text formatting through **rich segments**. Each placeholder value can be:
 
-- Una **stringa semplice** → testo non formattato (comportamento originale)
-- Un **array di segmenti** → ogni segmento ha `text` + attributi di formattazione opzionali
+- A **plain string** → unformatted text (original behavior)
+- An **array of segments** → each segment has `text` + optional formatting attributes
 
 ---
 
-## Come Usare i Segmenti
+## How to Use Segments
 
-### Stringa semplice (backward compatible)
+### Plain string (backward compatible)
 
 ```php
 $nome = 'Mario Rossi';
 ```
 
-### Segmento singolo con formattazione
+### Single segment with formatting
 
 ```php
 $prezzo = [
@@ -23,7 +23,7 @@ $prezzo = [
 ];
 ```
 
-### Segmenti multipli (mix di formattazioni)
+### Multiple segments (mixed formatting)
 
 ```php
 $formula = [
@@ -31,92 +31,92 @@ $formula = [
     ['text' => '2'],
     ['text' => 'O'],
 ];
-// Risultato: H₂O
+// Result: H₂O
 ```
 
 ---
 
-## Attributi Disponibili
+## Available Attributes
 
-### Formattazione Base
+### Basic Formatting
 
-| Attributo | Tipo | Valori | Descrizione |
+| Attribute | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `text` | `string` | qualunque | Il testo del segmento (obbligatorio) |
-| `bold` | `bool` | `true` / `false` | Grassetto |
-| `italic` | `bool` | `true` / `false` | Corsivo |
-| `strike` | `bool` | `true` / `false` | Barrato singolo |
-| `doubleStrike` | `bool` | `true` / `false` | Doppio barrato |
-| `underline` | `string` | `single`, `double`, `wavy`, `dotted`, `dash`, `dotDash`, ecc. | Sottolineato |
-| `caps` | `bool` | `true` / `false` | Maiuscole visuali |
-| `smallCaps` | `bool` | `true` / `false` | Maiuscole piccole |
+| `text` | `string` | any | The segment text (required) |
+| `bold` | `bool` | `true` / `false` | Bold |
+| `italic` | `bool` | `true` / `false` | Italic |
+| `strike` | `bool` | `true` / `false` | Single strikethrough |
+| `doubleStrike` | `bool` | `true` / `false` | Double strikethrough |
+| `underline` | `string` | `single`, `double`, `wavy`, `dotted`, `dash`, `dotDash`, etc. | Underline |
+| `caps` | `bool` | `true` / `false` | Visual caps |
+| `smallCaps` | `bool` | `true` / `false` | Small caps |
 
-### Apice e Pedice
+### Superscript and Subscript
 
-| Attributo | Tipo | Valori | Descrizione |
+| Attribute | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `superscript` | `bool` | `true` / `false` | Apice (testo rialzato) |
-| `subscript` | `bool` | `true` / `false` | Pedice (testo abbassato) |
+| `superscript` | `bool` | `true` / `false` | Superscript (raised text) |
+| `subscript` | `bool` | `true` / `false` | Subscript (lowered text) |
 
-**Esempio pedice:**
+**Subscript example:**
 ```php
 [['text' => 'H'], ['text' => '2', 'subscript' => true], ['text' => 'O']]
 // → H₂O
 ```
 
-**Esempio apice:**
+**Superscript example:**
 ```php
 [['text' => 'x'], ['text' => '2', 'superscript' => true]]
 // → x²
 ```
 
-### Font e Dimensione
+### Font and Size
 
-| Attributo | Tipo | Valori | Descrizione |
+| Attribute | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `font` | `string` | nome font | Nome del font (es. `Arial`, `Times New Roman`, `Calibri`) |
-| `fontSize` | `int` | punti | Dimensione in punti (es. `12` = 12pt) |
+| `font` | `string` | font name | Font name (e.g. `Arial`, `Times New Roman`, `Calibri`) |
+| `fontSize` | `int` | points | Size in points (e.g. `12` = 12pt) |
 
 ```php
-[['text' => 'Testo grande', 'font' => 'Arial', 'fontSize' => 18]]
+[['text' => 'Large text', 'font' => 'Arial', 'fontSize' => 18]]
 ```
 
-### Colore e Sfondo
+### Color and Background
 
-| Attributo | Tipo | Valori | Descrizione |
+| Attribute | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `color` | `string` | hex | Colore del testo (es. `FF0000` = rosso, `008000` = verde) |
-| `highlight` | `string` | `yellow`, `red`, `green`, `blue`, `cyan`, `magenta`, ecc. | Evidenziatore (palette fissa Word) |
-| `shading` | `string` | hex | Sfondo libero (colore personalizzato) |
+| `color` | `string` | hex | Text color (e.g. `FF0000` = red, `008000` = green) |
+| `highlight` | `string` | `yellow`, `red`, `green`, `blue`, `cyan`, `magenta`, etc. | Highlighter (fixed Word palette) |
+| `shading` | `string` | hex | Free background (custom color) |
 
 ```php
-[['text' => 'Attenzione', 'color' => 'FF0000', 'highlight' => 'yellow']]
+[['text' => 'Warning', 'color' => 'FF0000', 'highlight' => 'yellow']]
 ```
 
-### Effetti Testo
+### Text Effects
 
-| Attributo | Tipo | Valori | Descrizione |
+| Attribute | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `outline` | `bool` | `true` / `false` | Testo hollow (contorno) |
-| `shadow` | `bool` | `true` / `false` | Ombra |
-| `emboss` | `bool` | `true` / `false` | Rilievo |
-| `imprint` | `bool` | `true` / `false` | Incavo |
+| `outline` | `bool` | `true` / `false` | Hollow text (outline) |
+| `shadow` | `bool` | `true` / `false` | Shadow |
+| `emboss` | `bool` | `true` / `false` | Emboss |
+| `imprint` | `bool` | `true` / `false` | Imprint |
 
-### Spaziatura
+### Spacing
 
-| Attributo | Tipo | Valori | Descrizione |
+| Attribute | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `spacing` | `int` | twips | Spaziatura caratteri (positivo = espanso, negativo = compresso) |
+| `spacing` | `int` | twips | Character spacing (positive = expanded, negative = condensed) |
 
 ```php
-[['text' => 'Testo con spazio', 'spacing' => 50]]
+[['text' => 'Spaced text', 'spacing' => 50]]
 ```
 
 ---
 
-## Utilizzo per Tipo di Placeholder
+## Usage by Placeholder Type
 
-### Testo Semplice `{{testo:nome}}`
+### Plain Text `{{testo:nome}}`
 
 ```php
 $data = [
@@ -127,96 +127,96 @@ $data = [
 ];
 ```
 
-### Tabella `{{tabella:prodotti}}`
+### Table `{{tabella:prodotti}}`
 
-Ogni cella può essere una stringa o un array di segmenti.
+Each cell can be a string or an array of segments.
 
-#### Formato semplice
+#### Simple format
 
 ```php
 $data = [
     'tabella:prodotti' => [
-        // Intestazioni
-        ['Prodotto', 'Prezzo'],
-        // Celle con formattazione
+        // Headers
+        ['Product', 'Price'],
+        // Cells with formatting
         [
             ['text' => 'Laptop', 'bold' => true],
-            ['text' => '€999,99', 'color' => 'FF0000'],
+            ['text' => '€999.99', 'color' => 'FF0000'],
         ],
-        // Cella con mix di formattazioni (pedice)
+        // Cell with mixed formatting (subscript)
         [
             ['text' => 'H'], ['text' => '2', 'subscript' => true], ['text' => 'O'],
-            ' €10,00',
+            ' €10.00',
         ],
     ],
 ];
 ```
 
-#### Formato con config
+#### Config format
 
-Per configurare attributi della tabella, usa la chiave `config`:
+To configure table attributes, use the `config` key:
 
 ```php
 $data = [
     'tabella:prodotti' => [
         'config' => [
-            'repeatHeader' => true,      // Ripeti header ad ogni pagina (default: true)
-            'chunkSize' => 20,           // Righe per blocco con page break (default: 20)
-            'align' => 'center',         // Allineamento tabella: left, center, right
-            'width' => 5000,             // Larghezza tabella in twips
-            'widthType' => 'dxa',        // Tipo larghezza: auto, dxa, pct
-            'indent' => 0,               // Indentazione da sinistra (twips)
-            'cellSpacing' => 0,          // Spaziatura tra celle (twips)
+            'repeatHeader' => true,      // Repeat header on every page (default: true)
+            'chunkSize' => 20,           // Rows per block with page break (default: 20)
+            'align' => 'center',         // Table alignment: left, center, right
+            'width' => 5000,             // Table width in twips
+            'widthType' => 'dxa',        // Width type: auto, dxa, pct
+            'indent' => 0,               // Indent from left (twips)
+            'cellSpacing' => 0,          // Spacing between cells (twips)
             'layout' => 'autofit',       // Layout: fixed, autofit
-            'cellPadding' => [           // Margini interni celle (twips)
+            'cellPadding' => [           // Cell inner margins (twips)
                 'top' => 40,
                 'left' => 80,
                 'bottom' => 40,
                 'right' => 80,
             ],
-            'borders' => [               // Bordi personalizzati
+            'borders' => [               // Custom borders
                 'top' => ['val' => 'single', 'sz' => '4', 'color' => '000000'],
                 'bottom' => ['val' => 'single', 'sz' => '8', 'color' => 'FF0000'],
                 'insideH' => ['val' => 'single', 'sz' => '4', 'color' => 'CCCCCC'],
-                // bordi mancanti ereditano default single sz=4
+                // missing borders inherit default single sz=4
             ],
-            'vAlign' => 'center',        // Allineamento verticale celle: top, center, bottom
-            'rowHeight' => 400,          // Altezza riga in twips
-            'rowHeightRule' => 'atLeast', // Regola altezza: exact, atLeast, auto
-            'cantSplit' => true,         // Non spezzare riga su pagine diverse
-            'headerBgColor' => 'D9E2F3', // Colore sfondo riga header
+            'vAlign' => 'center',        // Vertical cell alignment: top, center, bottom
+            'rowHeight' => 400,          // Row height in twips
+            'rowHeightRule' => 'atLeast', // Height rule: exact, atLeast, auto
+            'cantSplit' => true,         // Do not split row across pages
+            'headerBgColor' => 'D9E2F3', // Header row background color
         ],
         'rows' => [
-            ['Prodotto', 'Prezzo'],
-            ['Laptop', ['text' => '€999,99', 'color' => '008000']],
+            ['Product', 'Price'],
+            ['Laptop', ['text' => '€999.99', 'color' => '008000']],
         ],
     ],
 ];
 ```
 
-#### Attributi tabella (`config`)
+#### Table attributes (`config`)
 
-| Attributo | Tipo | Default | Descrizione |
+| Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `repeatHeader` | `bool` | `true` | Ripete la riga di intestazione ad ogni pagina |
-| `chunkSize` | `int` | `20` | Numero righe per blocco prima del page break |
-| `align` | `string` | — | Allineamento orizzontale: `left`, `center`, `right` |
-| `width` | `int` | — | Larghezza tabella (twips) |
-| `widthType` | `string` | `dxa` | Tipo larghezza: `auto`, `dxa` (twips), `pct` (percentuale) |
-| `indent` | `int` | — | Indentazione da sinistra (twips) |
-| `cellSpacing` | `int` | — | Spaziatura tra celle (twips) |
-| `layout` | `string` | — | Layout tabella: `fixed`, `autofit` |
-| `cellPadding` | `array` | — | Margini interni: `top`, `left`, `bottom`, `right` (twips) |
-| `borders` | `array` | — | Bordi per lato (vedi sotto) |
-| `vAlign` | `string` | — | Allineamento verticale celle: `top`, `center`, `bottom` |
-| `rowHeight` | `int` | — | Altezza riga in twips |
-| `rowHeightRule` | `string` | `atLeast` | Regola altezza: `exact`, `atLeast`, `auto` |
-| `cantSplit` | `bool` | `false` | Impedisce di spezzare la riga su pagine diverse |
-| `headerBgColor` | `string` | `D9E2F3` | Colore sfondo riga intestazione |
+| `repeatHeader` | `bool` | `true` | Repeats the header row on every page |
+| `chunkSize` | `int` | `20` | Number of rows per block before page break |
+| `align` | `string` | — | Horizontal alignment: `left`, `center`, `right` |
+| `width` | `int` | — | Table width (twips) |
+| `widthType` | `string` | `dxa` | Width type: `auto`, `dxa` (twips), `pct` (percentage) |
+| `indent` | `int` | — | Indent from left (twips) |
+| `cellSpacing` | `int` | — | Spacing between cells (twips) |
+| `layout` | `string` | — | Table layout: `fixed`, `autofit` |
+| `cellPadding` | `array` | — | Inner margins: `top`, `left`, `bottom`, `right` (twips) |
+| `borders` | `array` | — | Borders per side (see below) |
+| `vAlign` | `string` | — | Vertical cell alignment: `top`, `center`, `bottom` |
+| `rowHeight` | `int` | — | Row height in twips |
+| `rowHeightRule` | `string` | `atLeast` | Height rule: `exact`, `atLeast`, `auto` |
+| `cantSplit` | `bool` | `false` | Prevents splitting the row across pages |
+| `headerBgColor` | `string` | `D9E2F3` | Header row background color |
 
-#### Bordi personalizzati
+#### Custom borders
 
-Ogni bordo accetta un array con: `val` (tipo), `sz` (spessore), `color` (colore hex).
+Each border accepts an array with: `val` (type), `sz` (thickness), `color` (hex color).
 
 ```php
 'borders' => [
@@ -229,67 +229,67 @@ Ogni bordo accetta un array con: `val` (tipo), `sz` (spessore), `color` (colore 
 ],
 ```
 
-Valori `val`: `single`, `double`, `dotted`, `dash`, `dotDash`, `none`, ecc.
+`val` values: `single`, `double`, `dotted`, `dash`, `dotDash`, `none`, etc.
 
-#### Attributi cella
+#### Cell attributes
 
-Le celle possono essere stringhe, array di segmenti, o array associativi:
+Cells can be strings, arrays of segments, or associative arrays:
 
 ```php
-// Stringa semplice
+// Plain string
 'Laptop'
 
-// Segmento singolo
+// Single segment
 ['text' => '€999', 'bold' => true]
 
-// Array di segmenti
+// Array of segments
 [
     ['text' => 'H'],
     ['text' => '2', 'subscript' => true],
 ]
 
-// Cella con attributi
+// Cell with attributes
 [
-    'text' => 'Testo',
+    'text' => 'Text',
     'bold' => true,
-    'gridSpan' => 2,     // Unisce 2 colonne
-    'vMerge' => true,    // Inizio merge verticale ('restart')
-    'vMerge' => 'continue', // Continua merge verticale
-    'align' => 'center', // Allineamento orizzontale nel paragrafo
+    'gridSpan' => 2,     // Merges 2 columns
+    'vMerge' => true,    // Start vertical merge ('restart')
+    'vMerge' => 'continue', // Continue vertical merge
+    'align' => 'center', // Horizontal alignment in the paragraph
 ]
 ```
 
-### Lista Puntata `{{lista:elementi}}`
+### Bulleted List `{{lista:elementi}}`
 
-Ogni elemento può essere una stringa o un array di segmenti:
+Each item can be a string or an array of segments:
 
 ```php
 $data = [
     'lista:elementi' => [
-        'Elemento semplice',
-        ['text' => 'Elemento grassetto', 'bold' => true],
-        ['text' => 'Elemento rosso', 'color' => 'FF0000'],
+        'Simple item',
+        ['text' => 'Bold item', 'bold' => true],
+        ['text' => 'Red item', 'color' => 'FF0000'],
     ],
 ];
 ```
 
-### Lista Numerata `{{lista_numerata:passaggi}}`
+### Numbered List `{{lista_numerata:passaggi}}`
 
 ```php
 $data = [
     'lista_numerata:passaggi' => [
-        ['text' => 'Primo passaggio', 'bold' => true],
-        ['text' => 'Secondo passaggio', 'italic' => true],
-        'Terzo passaggio',
+        ['text' => 'First step', 'bold' => true],
+        ['text' => 'Second step', 'italic' => true],
+        'Third step',
     ],
 ];
 ```
 
 ---
 
-## Esempi Completi
+## Complete Examples
 
-### Formula Chimica
+### Chemical Formula
 
 ```php
 $formula = [
@@ -301,7 +301,7 @@ $formula = [
 // → H₂SO₄
 ```
 
-### Formula Matematica
+### Mathematical Formula
 
 ```php
 $formula = [
@@ -313,62 +313,62 @@ $formula = [
 // → x² + y²
 ```
 
-### Prezzo Scontato
+### Discounted Price
 
 ```php
 $prezzo = [
-    ['text' => '€100,00', 'strike' => true, 'color' => '999999'],
+    ['text' => '€100.00', 'strike' => true, 'color' => '999999'],
     ['text' => ' → '],
-    ['text' => '€75,00', 'bold' => true, 'color' => 'FF0000'],
+    ['text' => '€75.00', 'bold' => true, 'color' => 'FF0000'],
 ];
-// → ~~€100,00~~ → €75,00
+// → ~~€100.00~~ → €75.00
 ```
 
-### Intestazione Tabella Formattata
+### Formatted Table Header
 
 ```php
 $tabella = [
     [
-        ['text' => 'Prodotto', 'bold' => true, 'color' => 'FFFFFF', 'shading' => '003366'],
-        ['text' => 'Prezzo', 'bold' => true, 'color' => 'FFFFFF', 'shading' => '003366'],
+        ['text' => 'Product', 'bold' => true, 'color' => 'FFFFFF', 'shading' => '003366'],
+        ['text' => 'Price', 'bold' => true, 'color' => 'FFFFFF', 'shading' => '003366'],
     ],
-    ['Laptop', ['text' => '€999,99', 'color' => '008000']],
+    ['Laptop', ['text' => '€999.99', 'color' => '008000']],
 ];
 ```
 
 ---
 
-## Note Tecniche
+## Technical Notes
 
-### Compatibilità
+### Compatibility
 
-- **LibreOffice**: Supporta tutti gli attributi. Testato su Windows, Linux, macOS.
+- **LibreOffice**: Supports all attributes. Tested on Windows, Linux, macOS.
 
-### Valori Colore
+### Color Values
 
-I colori sono specificati in formato hex a 6 cifre **senza** il prefisso `#`:
-- `FF0000` → Rosso
-- `008000` → Verde
-- `0000FF` → Blu
-- `000000` → Nero
-- `FFFFFF` → Bianco
+Colors are specified in 6-digit hex format **without** the `#` prefix:
+- `FF0000` → Red
+- `008000` → Green
+- `0000FF` → Blue
+- `000000` → Black
+- `FFFFFF` → White
 
-### Dimensione Font
+### Font Size
 
-La dimensione è in **punti** (non half-points come nell'XML OOXML). La conversione è automatica:
+The size is in **points** (not half-points as in OOXML XML). Conversion is automatic:
 - `12` → 12pt (24 half-points)
 - `18` → 18pt (36 half-points)
 - `24` → 24pt (48 half-points)
 
-### Ordine degli Attributi
+### Attribute Order
 
-Gli attributi possono essere specificati in qualsiasi ordine nell'array. L'unica regola è che `text` deve essere presente.
+Attributes can be specified in any order in the array. The only rule is that `text` must be present.
 
 ---
 
-## Struttura Interna
+## Internal Structure
 
-Per ogni segmento, DocxPDF genera l'XML WordprocessingML corrispondente:
+For each segment, DocxPDF generates the corresponding WordprocessingML XML:
 
 ```xml
 <w:r>
@@ -377,8 +377,8 @@ Per ogni segmento, DocxPDF genera l'XML WordprocessingML corrispondente:
     <w:color w:val="FF0000"/>       <!-- color: FF0000 -->
     <w:vertAlign w:val="subscript"/> <!-- subscript: true -->
   </w:rPr>
-  <w:t xml:space="preserve">testo</w:t>
+  <w:t xml:space="preserve">text</w:t>
 </w:r>
 ```
 
-La classe `RichTextSegment` si occupa della conversione automatica da array PHP a XML OOXML.
+The `RichTextSegment` class handles automatic conversion from PHP array to OOXML XML.
